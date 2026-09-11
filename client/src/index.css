@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #fbf8ff;
+    color: #1a1b25;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.glass-panel {
+  background: rgba(251, 248, 255, 0.84);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 225, 240, 0.85);
+  box-shadow: 0 8px 32px -4px rgba(70, 72, 212, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(199, 196, 215, 0.35);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(199, 196, 215, 0.5);
+  box-shadow: 0 6px 24px -2px rgba(99, 102, 241, 0.06);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -4px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.btn-gradient-indigo {
+  background: linear-gradient(135deg, #4648d4 0%, #6b38d4 100%);
+  box-shadow: 0 6px 20px -2px rgba(70, 72, 212, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.btn-gradient-indigo:hover {
+  background: linear-gradient(135deg, #3b3dbb 0%, #5b2eb8 100%);
+}
+
+.tap-highlight-transparent {
+  -webkit-tap-highlight-color: transparent;
+}
