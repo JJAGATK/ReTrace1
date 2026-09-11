@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
-// 32-byte encryption key (in production, loaded from environment secret)
-const ENCRYPTION_KEY = process.env.PII_SECRET_KEY || crypto.createHash('sha256').update('back2you-secure-campus-2026-pii-secret').digest();
+const rawKey = process.env.PII_SECRET_KEY || 'retrace-secure-campus-2026-pii-secret';
+const ENCRYPTION_KEY = Buffer.isBuffer(rawKey) && rawKey.length === 32 ? rawKey : crypto.createHash('sha256').update(String(rawKey)).digest();
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 

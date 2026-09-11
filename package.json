@@ -1,5 +1,5 @@
 {
-  "name": "back2you",
+  "name": "retrace",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,13 +14,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.3.0",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "better-sqlite3": "^13.0.3"
   }
 }

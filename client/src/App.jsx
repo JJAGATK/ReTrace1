@@ -11,26 +11,34 @@ import HandoverChatScreen from './screens/HandoverChatScreen';
 import LoginModal from './screens/LoginModal';
 
 function MainApp() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [currentTab, setCurrentTab] = useState('feed'); // 'feed', 'map', 'admin', 'handover', 'post', 'detail'
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [pendingClaimsCount, setPendingClaimsCount] = useState(1);
+  const [pendingClaimsCount, setPendingClaimsCount] = useState(0);
+  const [focusedBuilding, setFocusedBuilding] = useState(null);
+  const [activeHandoverItemId, setActiveHandoverItemId] = useState('REC-8842');
 
   // Poll for pending claims count for admin badge
   useEffect(() => {
     async function checkPending() {
+      if (!token || user?.role !== 'admin') {
+        setPendingClaimsCount(0);
+        return;
+      }
       try {
-        const res = await fetch('/api/admin/analytics');
+        const res = await fetch('/api/admin/analytics', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         if (res.ok) {
           const data = await res.json();
-          setPendingClaimsCount(data.pendingClaims || 1);
+          setPendingClaimsCount(typeof data.pendingClaims === 'number' ? data.pendingClaims : 0);
         }
       } catch (e) {}
     }
     checkPending();
-  }, [currentTab]);
+  }, [currentTab, token, user]);
 
   const handleSelectItem = (item) => {
     setSelectedItem(item);
@@ -41,6 +49,13 @@ function MainApp() {
   const handleOpenClaimModal = (item) => {
     setSelectedItem(item);
     setCurrentTab('detail');
+  };
+
+  const handleNavigate = (tab, params = {}) => {
+    if (params.building) setFocusedBuilding(params.building);
+    if (params.itemId) setActiveHandoverItemId(params.itemId);
+    setCurrentTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -103,6 +118,7 @@ function MainApp() {
             <ItemDetailScreen
               item={selectedItem}
               onBack={() => setCurrentTab('feed')}
+              onNavigate={handleNavigate}
               onClaimSuccess={() => {
                 setCurrentTab('admin');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -111,7 +127,10 @@ function MainApp() {
           )}
 
           {currentTab === 'map' && (
-            <CampusMapScreen onSelectItem={handleSelectItem} />
+            <CampusMapScreen 
+              onSelectItem={handleSelectItem} 
+              focusedBuilding={focusedBuilding}
+            />
           )}
 
           {currentTab === 'admin' && (
@@ -125,7 +144,7 @@ function MainApp() {
           )}
 
           {currentTab === 'handover' && (
-            <HandoverChatScreen activeItemId="REC-8842" />
+            <HandoverChatScreen activeItemId={activeHandoverItemId} />
           )}
         </main>
       </div>
@@ -134,7 +153,7 @@ function MainApp() {
       <footer className="mt-12 border-t border-indigo-100/80 bg-white/40 backdrop-blur-md relative z-10">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#1a1b25]">Back2You</span>
+            <span className="font-bold text-[#1a1b25]">ReTrace</span>
             <span>•</span>
             <span>Official University Campus Recovery Protocol</span>
           </div>

@@ -78,7 +78,7 @@ export default function LoginModal({ isOpen, onClose }) {
             </div>
             <div>
               <h3 className="font-bold text-base text-[#1a1b25]">Campus Single Sign-On</h3>
-              <p className="text-[11px] text-slate-400">Back2You University Hub</p>
+              <p className="text-[11px] text-slate-400">ReTrace University Hub</p>
             </div>
           </div>
           <button

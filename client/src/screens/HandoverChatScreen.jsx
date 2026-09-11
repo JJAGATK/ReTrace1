@@ -1,39 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
+export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-8842' }) {
   const { user, token } = useAuth();
+  const [activeItemId, setActiveItemId] = useState(initialItemId);
+  const [allHandovers, setAllHandovers] = useState([]);
   const [handoverData, setHandoverData] = useState(null);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'Officer Marcus (Cabot Desk)',
-      text: 'Hello! The AirPods Pro have been verified and sealed in Lockbox B-7 at Cabot Circulation Desk. You may pick them up until 11:00 PM.',
-      timestamp: 'Today 2:45 PM',
-      isStaff: true
-    },
-    {
-      id: 2,
-      sender: 'Julian Vance (Claimant)',
-      text: 'Thank you Officer! I have finished my CS lecture and will be over at Cabot in 10 minutes with my student ID.',
-      timestamp: 'Today 3:00 PM',
-      isStaff: false
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  const fetchHandover = async () => {
+  // Load all available handover sessions
+  useEffect(() => {
+    async function loadSessions() {
+      if (!token) return;
+      try {
+        const res = await fetch('/api/handovers', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAllHandovers(data.handovers || []);
+        }
+      } catch (e) {
+        console.error('Failed to load handover sessions', e);
+      }
+    }
+    loadSessions();
+  }, [token]);
+
+  const fetchHandoverAndMessages = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/handovers/${activeItemId}`, {
+      // Fetch handover details
+      const hRes = await fetch(`/api/handovers/${activeItemId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
-        setHandoverData(data);
+      if (hRes.ok) {
+        const hData = await hRes.json();
+        setHandoverData(hData);
+      }
+
+      // Fetch persisted chat messages
+      const mRes = await fetch(`/api/handovers/${activeItemId}/messages`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (mRes.ok) {
+        const mData = await mRes.json();
+        setMessages(mData.messages || []);
       }
     } catch (e) {
       console.error('Handover fetch error', e);
@@ -43,7 +59,9 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
   };
 
   useEffect(() => {
-    fetchHandover();
+    if (activeItemId) {
+      fetchHandoverAndMessages();
+    }
   }, [activeItemId, token]);
 
   const showToast = (msg) => {
@@ -51,18 +69,32 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMsg.trim()) return;
-    const msgObj = {
-      id: Date.now(),
-      sender: user?.name || 'You',
-      text: newMsg.trim(),
-      timestamp: 'Just Now',
-      isStaff: user?.role === 'admin'
-    };
-    setMessages(prev => [...prev, msgObj]);
+    if (!newMsg.trim() || !token) return;
+
+    const text = newMsg.trim();
     setNewMsg('');
+
+    try {
+      const res = await fetch(`/api/handovers/${activeItemId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: text })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(prev => [...prev, data.message]);
+      } else {
+        showToast('Failed to send message');
+      }
+    } catch (err) {
+      showToast('Network error sending message');
+    }
   };
 
   const handleConfirm = async () => {
@@ -82,7 +114,7 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
         } else {
           showToast('✓ Sign-off recorded! Awaiting confirmation from the second party.');
         }
-        fetchHandover();
+        fetchHandoverAndMessages();
       }
     } catch (e) {
       console.error('Confirmation error', e);
@@ -91,11 +123,11 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
     }
   };
 
-  if (loading) {
+  if (loading && !handoverData) {
     return (
       <div className="max-w-[1240px] mx-auto px-4 py-12 text-center">
         <span className="material-symbols-outlined text-3xl text-[#4648d4] animate-spin mb-2">sync</span>
-        <p className="text-xs text-slate-500 font-semibold">Decrypting secure handover chamber...</p>
+        <p className="text-xs text-slate-500 font-semibold">Decrypting secure ReTrace handover chamber...</p>
       </div>
     );
   }
@@ -117,12 +149,12 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
-              Verified Safe Handover Chamber
+              ReTrace Verified Safe Handover Chamber
             </h1>
           </div>
           <p className="text-xs text-[#464554] mt-0.5">
@@ -130,11 +162,28 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
           </p>
         </div>
 
-        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-          isCompleted ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-50 text-[#4648d4] border border-indigo-200'
-        }`}>
-          {isCompleted ? '✓ Handover Completed' : 'Session Active'}
-        </span>
+        {/* Handover Session Selector if multiple */}
+        <div className="flex items-center gap-2">
+          {allHandovers.length > 1 && (
+            <select
+              value={activeItemId}
+              onChange={(e) => setActiveItemId(e.target.value)}
+              className="px-3 py-1.5 rounded-full bg-white border border-indigo-200 text-xs font-semibold text-[#1a1b25] shadow-xs cursor-pointer"
+            >
+              {allHandovers.map(h => (
+                <option key={h.id} value={h.item_id}>
+                  Item #{h.item_id} — {h.item_title}
+                </option>
+              ))}
+            </select>
+          )}
+
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+            isCompleted ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-50 text-[#4648d4] border border-indigo-200'
+          }`}>
+            {isCompleted ? '✓ Handover Completed' : 'Session Active'}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -183,7 +232,7 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
                     <div className="w-5 h-5 bg-[#1a1b25]"></div>
                   </div>
                   <div className="text-[8px] font-mono font-bold tracking-tighter text-[#4648d4]">
-                    VERIFIED_ID
+                    RETRACE_ID
                   </div>
                   <div className="flex justify-between">
                     <div className="w-5 h-5 bg-[#1a1b25]"></div>
@@ -192,7 +241,7 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
                 </div>
               </div>
               <span className="font-mono text-[11px] font-bold text-[#1a1b25]">
-                {handoverData?.handover?.qr_code_token || 'VERIFIED_QR_8842CABOT'}
+                {handoverData?.handover?.qr_code_token || 'RETRACE_QR_8842CABOT'}
               </span>
               <span className="text-[10px] text-slate-400 mt-0.5">
                 Scan at desk intake terminal to verify claim authorization
@@ -208,11 +257,11 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
               <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700 mt-1">
                 <div>
                   <span className="text-slate-400 block font-medium">Finder / Custodian:</span>
-                  <span className="font-semibold text-[#1a1b25]">{handoverData?.finder?.name}</span>
+                  <span className="font-semibold text-[#1a1b25]">{handoverData?.finder?.name || 'Verified Student'}</span>
                 </div>
                 <div>
                   <span className="text-slate-400 block font-medium">Verified Claimant:</span>
-                  <span className="font-semibold text-[#1a1b25]">{handoverData?.claimant?.name}</span>
+                  <span className="font-semibold text-[#1a1b25]">{handoverData?.claimant?.name || 'Julian Vance'}</span>
                 </div>
               </div>
             </div>
@@ -276,34 +325,41 @@ export default function HandoverChatScreen({ activeItemId = 'REC-8842' }) {
 
           {/* Messages Feed */}
           <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-1">
-            {messages.map((m) => {
-              const isMe = m.sender.includes(user?.name || '---');
-              return (
-                <div
-                  key={m.id}
-                  className={`flex flex-col max-w-[80%] ${
-                    isMe ? 'self-end items-end' : 'self-start items-start'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-0.5">
-                    <span className="font-semibold text-slate-700">{m.sender}</span>
-                    <span>•</span>
-                    <span>{m.timestamp}</span>
-                  </div>
+            {messages.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-xs">
+                <span className="material-symbols-outlined text-3xl mb-1">chat_bubble_outline</span>
+                <span>No messages yet. Send a note to coordinate meetup!</span>
+              </div>
+            ) : (
+              messages.map((m) => {
+                const isMe = m.sender_id === user?.id || (m.sender_name && m.sender_name.includes(user?.name || '---'));
+                return (
                   <div
-                    className={`p-3 rounded-2xl text-xs leading-relaxed ${
-                      isMe
-                        ? 'bg-gradient-to-r from-[#4648d4] to-[#6b38d4] text-white shadow-sm rounded-tr-xs'
-                        : m.isStaff
-                        ? 'bg-purple-100/70 border border-purple-200 text-purple-950 font-medium rounded-tl-xs'
-                        : 'bg-white border border-indigo-100 text-[#1a1b25] shadow-xs rounded-tl-xs'
+                    key={m.id}
+                    className={`flex flex-col max-w-[80%] ${
+                      isMe ? 'self-end items-end' : 'self-start items-start'
                     }`}
                   >
-                    {m.text}
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-0.5">
+                      <span className="font-semibold text-slate-700">{m.sender_name || (isMe ? 'You' : 'Classmate')}</span>
+                      <span>•</span>
+                      <span>{new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div
+                      className={`p-3 rounded-2xl text-xs leading-relaxed ${
+                        isMe
+                          ? 'bg-gradient-to-r from-[#4648d4] to-[#6b38d4] text-white shadow-sm rounded-tr-xs'
+                          : m.is_staff || m.sender_role === 'admin'
+                          ? 'bg-purple-100/70 border border-purple-200 text-purple-950 font-medium rounded-tl-xs'
+                          : 'bg-white border border-indigo-100 text-[#1a1b25] shadow-xs rounded-tl-xs'
+                      }`}
+                    >
+                      {m.message || m.text}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* Chat Input */}

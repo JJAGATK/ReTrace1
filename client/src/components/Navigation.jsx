@@ -45,7 +45,7 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             >
               <span className="material-symbols-outlined text-sm">verified_user</span>
               <span>Claim Center {user?.role === 'admin' && '(Admin)'}</span>
-              {pendingCount > 0 && (
+              {user?.role === 'admin' && pendingCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-[#F43F5E] text-white text-[10px] font-bold flex items-center justify-center">
                   {pendingCount}
                 </span>
@@ -130,7 +130,7 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             }`}
           >
             <span className="material-symbols-outlined text-2xl">shield_person</span>
-            {pendingCount > 0 && (
+            {user?.role === 'admin' && pendingCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#F43F5E] ring-2 ring-white"></span>
             )}
           </button>

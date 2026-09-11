@@ -6,8 +6,9 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
   const [claims, setClaims] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [flags, setFlags] = useState([]);
   const [isChainValid, setIsChainValid] = useState(true);
-  const [activeSubTab, setActiveSubTab] = useState('queue'); // 'queue', 'audit', 'analytics'
+  const [activeSubTab, setActiveSubTab] = useState('queue'); // 'queue', 'flags', 'audit', 'analytics'
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -22,7 +23,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
       });
       if (claimsRes.ok) {
         const cData = await claimsRes.json();
-        setClaims(cData.claims);
+        setClaims(cData.claims || []);
       }
 
       // Analytics
@@ -34,12 +35,21 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
         setAnalytics(aData);
       }
 
-      // Audit Chain for Cabot AirPods
+      // Flags
+      const flagsRes = await fetch('/api/admin/flags', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (flagsRes.ok) {
+        const fData = await flagsRes.json();
+        setFlags(fData.flags || []);
+      }
+
+      // Audit Chain for Cabot AirPods / ReTrace
       const auditRes = await fetch('/api/items/REC-8842/custody-chain');
       if (auditRes.ok) {
         const logData = await auditRes.json();
-        setAuditLogs(logData.logs);
-        setIsChainValid(logData.isChainValid);
+        setAuditLogs(logData.logs || logData.custodyLogs || []);
+        setIsChainValid(logData.isChainValid !== false);
       }
     } catch (e) {
       console.error('Failed to load admin data', e);
@@ -84,6 +94,29 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
     }
   };
 
+  const handleResolveFlag = async (flagId, resolution) => {
+    try {
+      const res = await fetch(`/api/admin/flags/${flagId}/resolve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status: resolution,
+          notes: `Resolved by ${user?.name || 'Moderator'}`
+        })
+      });
+      if (res.ok) {
+        setFeedback(`✓ Report marked as ${resolution}`);
+        setTimeout(() => setFeedback(null), 3000);
+        fetchData();
+      }
+    } catch (e) {
+      console.error('Flag resolution error', e);
+    }
+  };
+
   const handleExportAudit = async () => {
     try {
       const res = await fetch('/api/admin/audit-export', {
@@ -95,13 +128,15 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `back2you-audit-log-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `retrace-audit-log-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
       }
     } catch (e) {
       console.error('Audit export error', e);
     }
   };
+
+  const pendingFlags = flags.filter(f => f.status === 'pending');
 
   return (
     <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
@@ -114,11 +149,11 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
               Desk Monitor Console
             </span>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
-              Campus Security & Verification Center
+              ReTrace Campus Security & Verification Center
             </h1>
           </div>
           <p className="text-xs text-[#464554] mt-0.5">
-            Review ownership verification challenges, approve physical releases, and audit immutable chain-of-custody logs.
+            Review ownership verification challenges, resolve community reports, and audit immutable chain-of-custody logs.
           </p>
         </div>
 
@@ -145,9 +180,9 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
       {analytics && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <div className="glass-card rounded-2xl p-4 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-slate-400">Total Campus Items</span>
-            <div className="text-2xl font-black text-[#1a1b25] mt-1">{analytics.totalItems}</div>
-            <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">Active in geofenced quad</div>
+            <span className="text-[11px] font-semibold text-slate-400">Active Campus Items</span>
+            <div className="text-2xl font-black text-[#1a1b25] mt-1">{analytics.activeItems ?? (analytics.totalItems - (analytics.returnedItems || 0))}</div>
+            <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">{analytics.totalItems} total registered</div>
           </div>
 
           <div className="glass-card rounded-2xl p-4 border border-indigo-100">
@@ -158,32 +193,51 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
 
           <div className="glass-card rounded-2xl p-4 border border-indigo-100">
             <span className="text-[11px] font-semibold text-slate-400">Pending Review</span>
-            <div className="text-2xl font-black text-[#6b38d4] mt-1">{claims.filter(c => c.status === 'admin_review').length}</div>
-            <div className="text-[10px] text-purple-600 font-semibold mt-0.5">Ownership matched</div>
+            <div className="text-2xl font-black text-[#6b38d4] mt-1">{claims.filter(c => c.status === 'admin_review' || c.status === 'submitted').length}</div>
+            <div className="text-[10px] text-purple-600 font-semibold mt-0.5">Ownership challenges</div>
           </div>
 
           <div className="glass-card rounded-2xl p-4 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-slate-400">Urgent Lost Alerts</span>
-            <div className="text-2xl font-black text-[#F43F5E] mt-1">{analytics.activeLost}</div>
-            <div className="text-[10px] text-rose-500 font-semibold mt-0.5">Bounties & active scans</div>
+            <span className="text-[11px] font-semibold text-slate-400">Flagged Reports</span>
+            <div className="text-2xl font-black text-[#F43F5E] mt-1">{pendingFlags.length}</div>
+            <div className="text-[10px] text-rose-500 font-semibold mt-0.5">Awaiting moderation</div>
           </div>
         </div>
       )}
 
       {/* Sub-Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-indigo-100 mb-6 pb-2">
+      <div className="flex items-center gap-2 border-b border-indigo-100 mb-6 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('queue')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === 'queue' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
           }`}
         >
-          Claims Review Queue ({claims.length})
+          <span>Claims Review Queue</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            activeSubTab === 'queue' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-800'
+          }`}>
+            {claims.filter(c => c.status === 'admin_review' || c.status === 'submitted').length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('flags')}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeSubTab === 'flags' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
+          }`}
+        >
+          <span>Flagged Listings</span>
+          {pendingFlags.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-bold">
+              {pendingFlags.length}
+            </span>
+          )}
         </button>
 
         <button
           onClick={() => setActiveSubTab('audit')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === 'audit' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
           }`}
         >
@@ -193,7 +247,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
 
         <button
           onClick={() => setActiveSubTab('analytics')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'analytics' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
           }`}
         >
@@ -224,7 +278,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-[#4648d4]">
-                        {claim.claimant_name.charAt(0)}
+                        {claim.claimant_name ? claim.claimant_name.charAt(0) : 'U'}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -255,7 +309,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
                           ? 'bg-rose-100 text-rose-800'
                           : 'bg-purple-100 text-purple-800 animate-pulse'
                       }`}>
-                        {claim.status.toUpperCase()}
+                        {claim.status?.toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -283,7 +337,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
                         <div key={idx} className="text-xs">
                           <span className="text-slate-500 font-medium block">Q{idx + 1}: {q}</span>
                           <span className="font-bold text-purple-900 bg-purple-100/70 px-1.5 py-0.5 rounded">
-                            Expected: {claim.expected_answers[idx] || 'Confidential Answer'}
+                            Expected: {claim.expected_answers?.[idx] || 'Confidential Answer'}
                           </span>
                         </div>
                       ))}
@@ -369,7 +423,68 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
         </div>
       )}
 
-      {/* TAB 2: IMMUTABLE CHAIN-OF-CUSTODY AUDIT LOG */}
+      {/* TAB 2: FLAGGED LISTINGS MODERATION QUEUE */}
+      {activeSubTab === 'flags' && (
+        <div className="flex flex-col gap-4">
+          {flags.length === 0 ? (
+            <div className="glass-card rounded-3xl p-12 text-center">
+              <span className="material-symbols-outlined text-4xl text-emerald-500 mb-2">shield</span>
+              <h3 className="text-sm font-bold text-[#1a1b25]">No Flagged Content</h3>
+              <p className="text-xs text-slate-500 mt-1">Campus community listings are clean and in compliance.</p>
+            </div>
+          ) : (
+            flags.map((flag) => (
+              <div key={flag.id} className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-lg flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-full bg-rose-100 text-rose-600">
+                      <span className="material-symbols-outlined text-base">flag</span>
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-[#1a1b25]">
+                        Item #{flag.item_id}: {flag.item_title}
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        Reported by {flag.reporter_name || 'Anonymous Student'} • Reason: <strong className="text-rose-600 capitalize">{flag.reason}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    flag.status === 'resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {flag.status?.toUpperCase()}
+                  </span>
+                </div>
+
+                {flag.details && (
+                  <div className="p-3 rounded-xl bg-slate-50 text-xs text-slate-700 italic border border-slate-200">
+                    "{flag.details}"
+                  </div>
+                )}
+
+                {flag.status === 'pending' && (
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-indigo-100">
+                    <button
+                      onClick={() => handleResolveFlag(flag.id, 'dismissed')}
+                      className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-[#1a1b25] text-xs font-semibold cursor-pointer"
+                    >
+                      Dismiss Report
+                    </button>
+                    <button
+                      onClick={() => handleResolveFlag(flag.id, 'resolved')}
+                      className="px-4 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer"
+                    >
+                      Take Action & Mark Resolved
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: IMMUTABLE CHAIN-OF-CUSTODY AUDIT LOG */}
       {activeSubTab === 'audit' && (
         <div className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-lg flex flex-col gap-4">
           
@@ -394,7 +509,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
           <div className="flex flex-col gap-3">
             {auditLogs.map((log, idx) => (
               <div
-                key={log.id}
+                key={log.id || idx}
                 className="p-3.5 rounded-2xl bg-indigo-50/30 hover:bg-indigo-50/70 border border-indigo-100 flex flex-col gap-1.5 transition-colors font-mono"
               >
                 <div className="flex items-center justify-between text-xs">
@@ -402,11 +517,11 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
                     <span className="w-5 h-5 rounded-full bg-[#4648d4] text-white text-[10px] font-bold flex items-center justify-center">
                       {idx + 1}
                     </span>
-                    <span className="font-bold text-[#1a1b25]">{log.action}</span>
+                    <span className="font-bold text-[#1a1b25] capitalize">{log.action_type || log.action}</span>
                     <span className="text-slate-400 font-sans font-normal">• Actor: {log.actor_name}</span>
                   </div>
                   <span className="text-[11px] text-slate-400 font-sans">
-                    {new Date(log.timestamp).toLocaleString()}
+                    {new Date(log.created_at || log.timestamp).toLocaleString()}
                   </span>
                 </div>
 
@@ -417,11 +532,11 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] pt-1 text-slate-400">
                   <div className="truncate">
                     <span className="font-semibold text-slate-500">Prev: </span>
-                    <span>{log.previous_hash}</span>
+                    <span>{log.previous_hash || '0x00000000000000000000000000000000'}</span>
                   </div>
                   <div className="truncate">
                     <span className="font-semibold text-purple-600">Hash: </span>
-                    <span className="text-purple-700 font-bold">{log.hash}</span>
+                    <span className="text-purple-700 font-bold">{log.block_hash || log.hash}</span>
                   </div>
                 </div>
               </div>
@@ -431,7 +546,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
         </div>
       )}
 
-      {/* TAB 3: CAMPUS LOSS HOTSPOTS */}
+      {/* TAB 4: CAMPUS LOSS HOTSPOTS */}
       {activeSubTab === 'analytics' && analytics && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
@@ -441,7 +556,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
               <span>Top Campus Loss Hotspot Quadrants</span>
             </h3>
             <div className="flex flex-col gap-2 pt-2">
-              {analytics.hotspotZones.map((zone, idx) => (
+              {analytics.hotspotZones?.map((zone, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/50 border border-indigo-100">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center">
@@ -461,7 +576,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
               <span>Most Common Lost Categories</span>
             </h3>
             <div className="flex flex-col gap-2 pt-2">
-              {analytics.categories.map((cat, idx) => (
+              {analytics.categories?.map((cat, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/50 border border-indigo-100">
                   <span className="text-xs font-bold text-[#1a1b25]">{cat.category}</span>
                   <span className="text-xs font-bold text-[#6b38d4]">{cat.count} reports</span>

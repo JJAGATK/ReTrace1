@@ -1,16 +1,37 @@
 const db = require('./db');
 const { encryptPII, createLogHash, hashSecret } = require('./crypto');
 
-function seedDatabase() {
-  console.log('Seeding Back2You database with campus data...');
+async function seedDatabase() {
+  console.log('Seeding ReTrace database with campus data...');
+  await db.initSchema();
 
   // 1. Seed Users
-  const insertUser = db.prepare(`
-    INSERT OR REPLACE INTO users (id, name, email, role, trust_score, returns_count, campus_affiliation, avatar_url)
+  const userSql = `
+    INSERT INTO users (id, name, email, role, trust_score, returns_count, campus_affiliation, avatar_url)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      email = EXCLUDED.email,
+      role = EXCLUDED.role,
+      trust_score = EXCLUDED.trust_score,
+      returns_count = EXCLUDED.returns_count,
+      campus_affiliation = EXCLUDED.campus_affiliation,
+      avatar_url = EXCLUDED.avatar_url
+  `;
 
-  insertUser.run(
+  // Fallback for SQLite INSERT OR REPLACE syntax vs Postgres ON CONFLICT
+  const insertUser = async (id, name, email, role, score, returns, campus, avatar) => {
+    if (db.isPostgres) {
+      await db.run(userSql, [id, name, email, role, score, returns, campus, avatar]);
+    } else {
+      await db.run(`
+        INSERT OR REPLACE INTO users (id, name, email, role, trust_score, returns_count, campus_affiliation, avatar_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [id, name, email, role, score, returns, campus, avatar]);
+    }
+  };
+
+  await insertUser(
     'user-maya',
     'Maya Lin',
     'maya.lin@harvard.edu',
@@ -21,7 +42,7 @@ function seedDatabase() {
     'https://lh3.googleusercontent.com/aida/AEtjO1VKdmUxVG-N5A5XZLSCGGS6rtwjUGLfaVH3Dp0s6J0SaP324w1jGNJ0D2s8k6BIldEAtdKQdNSIEwtW7-xZAXZhyLIpW2kjsdNTzscC5WRFrvvmYNILvyIwyaaNHG2Y6RBXECtF1wbgoy9N4Uhwf7RhsHJPYtE0z2DZ_0fI5XouhJcRzEUf011ylXziLJHY9Xs2KI_ttBi07vd51-KNZzTBuFs2Rl9CUzH4xXAg4aCSStxwHZ3hvRXVSzo'
   );
 
-  insertUser.run(
+  await insertUser(
     'user-julian',
     'Julian Vance',
     'julian.vance@harvard.edu',
@@ -32,7 +53,7 @@ function seedDatabase() {
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
   );
 
-  insertUser.run(
+  await insertUser(
     'user-admin',
     'Officer Marcus Vance',
     'm.vance@campus.harvard.edu',
@@ -43,35 +64,45 @@ function seedDatabase() {
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80'
   );
 
-  // 2. Clear & Seed Items
-  db.prepare('DELETE FROM custody_logs').run();
-  db.prepare('DELETE FROM handovers').run();
-  db.prepare('DELETE FROM claims').run();
-  db.prepare('DELETE FROM challenges').run();
-  db.prepare('DELETE FROM items').run();
+  // 2. Clear Tables
+  await db.run('DELETE FROM handover_messages');
+  await db.run('DELETE FROM sightings');
+  await db.run('DELETE FROM bookmarks');
+  await db.run('DELETE FROM flags');
+  await db.run('DELETE FROM custody_logs');
+  await db.run('DELETE FROM handovers');
+  await db.run('DELETE FROM claims');
+  await db.run('DELETE FROM challenges');
+  await db.run('DELETE FROM items');
 
-  const insertItem = db.prepare(`
-    INSERT INTO items (
-      id, type, title, category, description, coarse_location, floor_room,
-      latitude, longitude, exact_location_encrypted, custody_type, custody_desk_name,
-      custody_status, photos_json, status, reward_offered, user_id, reporter_name,
-      reporter_avatar, is_urgent, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+  const insertItem = async (params) => {
+    return await db.run(`
+      INSERT INTO items (
+        id, type, title, category, description, coarse_location, floor_room,
+        latitude, longitude, exact_location_encrypted, custody_type, custody_desk_name,
+        custody_status, photos_json, status, reward_offered, user_id, reporter_name,
+        reporter_avatar, is_urgent, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, params);
+  };
 
-  const insertChallenge = db.prepare(`
-    INSERT INTO challenges (item_id, questions_json, secret_answers_json, intake_serial_encrypted, intake_serial_hash)
-    VALUES (?, ?, ?, ?, ?)
-  `);
+  const insertChallenge = async (params) => {
+    return await db.run(`
+      INSERT INTO challenges (item_id, questions_json, secret_answers_json, intake_serial_encrypted, intake_serial_hash)
+      VALUES (?, ?, ?, ?, ?)
+    `, params);
+  };
 
-  const insertLog = db.prepare(`
-    INSERT INTO custody_logs (item_id, actor_id, actor_name, action, notes, previous_hash, hash, timestamp)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+  const insertLog = async (params) => {
+    return await db.run(`
+      INSERT INTO custody_logs (item_id, actor_id, actor_name, action, notes, previous_hash, hash, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `, params);
+  };
 
   // Helper to log with hash chain
-  function logCustodyEvent(itemId, actorId, actorName, action, notes, timestamp = new Date().toISOString()) {
-    const lastRow = db.prepare('SELECT hash FROM custody_logs WHERE item_id = ? ORDER BY id DESC LIMIT 1').get(itemId);
+  async function logCustodyEvent(itemId, actorId, actorName, action, notes, timestamp = new Date().toISOString()) {
+    const lastRow = await db.get('SELECT hash FROM custody_logs WHERE item_id = ? ORDER BY id DESC LIMIT 1', [itemId]);
     const prevHash = lastRow ? lastRow.hash : 'GENESIS_HASH_000000000000000000000000000000000000000000000000000000000000';
     const hash = createLogHash({
       previousHash: prevHash,
@@ -81,7 +112,7 @@ function seedDatabase() {
       timestamp,
       notes
     });
-    insertLog.run(itemId, actorId, actorName, action, notes, prevHash, hash, timestamp);
+    await insertLog([itemId, actorId, actorName, action, notes, prevHash, hash, timestamp]);
   }
 
   // ITEM 1: AirPods Pro (Found by Maya at Cabot Library)
@@ -91,7 +122,7 @@ function seedDatabase() {
     'https://lh3.googleusercontent.com/aida-public/AB6AXuB0uQHcljQ3z3anExmYV-ElTXo2ihsxumnJyZ5msFncmQW09P2R3ROU_TvVcUVIaZIZzcVFQ9hxrFoOPlcvQpLWYEfg5aCNeM6D8PMtqQMbGoCJDsrG0q4nhZ6ZKXs9eS7B0jzD0YZ_uVJH207Wq_jfHKOQYHfbSjQ13ztKfWnInE9pklo752PtHzaPuaBVk66WubSidlUmNtJUeQmni7WYdtJR6Qf8CczBRmWuvv80FNYgcWhL-669UQ'
   ];
 
-  insertItem.run(
+  await insertItem([
     'REC-8842',
     'found',
     'Apple AirPods Pro (2nd Gen) in Blue Rugged Case',
@@ -106,16 +137,16 @@ function seedDatabase() {
     'Cabot Circulation Desk (Staff ID: #L-89)',
     'at_desk',
     JSON.stringify(item1Photos),
-    'open',
+    'approved_pending_handover',
     null,
     'user-maya',
     'Maya Lin',
     'https://lh3.googleusercontent.com/aida/AEtjO1VKdmUxVG-N5A5XZLSCGGS6rtwjUGLfaVH3Dp0s6J0SaP324w1jGNJ0D2s8k6BIldEAtdKQdNSIEwtW7-xZAXZhyLIpW2kjsdNTzscC5WRFrvvmYNILvyIwyaaNHG2Y6RBXECtF1wbgoy9N4Uhwf7RhsHJPYtE0z2DZ_0fI5XouhJcRzEUf011ylXziLJHY9Xs2KI_ttBi07vd51-KNZzTBuFs2Rl9CUzH4xXAg4aCSStxwHZ3hvRXVSzo',
     0,
     new Date(Date.now() - 24 * 60 * 1000).toISOString()
-  );
+  ]);
 
-  insertChallenge.run(
+  await insertChallenge([
     'REC-8842',
     JSON.stringify([
       'What specific custom Bluetooth name broadcasts when opening the lid?',
@@ -127,17 +158,83 @@ function seedDatabase() {
     ]),
     encryptPII('H9CGV42K01'),
     hashSecret('H9CGV42K01')
-  );
+  ]);
 
-  logCustodyEvent('REC-8842', 'user-maya', 'Maya Lin', 'POSTED', 'Item found at 3rd Floor Carrel #42 and registered to Back2You.');
-  logCustodyEvent('REC-8842', 'user-admin', 'Officer Marcus Vance', 'PHYSICAL_DEPOSIT_CONFIRMED', 'Item handed in at Cabot Circulation Desk. Sealed in Lockbox B-7.');
+  await logCustodyEvent('REC-8842', 'user-maya', 'Maya Lin', 'POSTED', 'Item found at 3rd Floor Carrel #42 and registered to ReTrace.');
+  await logCustodyEvent('REC-8842', 'user-admin', 'Officer Marcus Vance', 'PHYSICAL_DEPOSIT_CONFIRMED', 'Item handed in at Cabot Circulation Desk. Sealed in Lockbox B-7.');
+
+  // Create initial approved claim & handover session for REC-8842
+  await db.run(`
+    INSERT INTO claims (
+      id, item_id, claimant_id, claimant_name, claimant_email,
+      answers_json, proof_notes, proof_photo_url, serial_provided,
+      match_score, status, admin_notes, reviewed_by, reviewed_at, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `, [
+    'CLM-9912',
+    'REC-8842',
+    'user-julian',
+    'Julian Vance',
+    'julian.vance@harvard.edu',
+    JSON.stringify(["Evan's Pods 2024", 'M.C.']),
+    'Bluetooth name matches device account and initials M.C. engraved on hinge.',
+    null,
+    'H9CGV42K01',
+    100,
+    'approved',
+    'Approved by Cabot Desk Monitor',
+    'Officer Marcus Vance'
+  ]);
+
+  await db.run(`
+    INSERT INTO handovers (
+      id, item_id, claim_id, finder_id, claimant_id,
+      scheduled_time, location_name, exact_directions, qr_code_token, finder_confirmed, claimant_confirmed, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 'scheduled')
+  `, [
+    'HO-8842',
+    'REC-8842',
+    'CLM-9912',
+    'user-maya',
+    'user-julian',
+    'Today until 11:00 PM (Staff ID #L-89)',
+    'Cabot Science Library Circulation Desk',
+    'Present university student ID card or scan dynamic QR token at Cabot Circulation Desk.',
+    'VERIFIED_QR_8842CABOT'
+  ]);
+
+  await db.run(`
+    INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    'MSG-1',
+    'HO-8842',
+    'REC-8842',
+    'user-admin',
+    'Officer Marcus (Cabot Desk)',
+    'admin',
+    'Hello! The AirPods Pro have been verified and sealed in Lockbox B-7 at Cabot Circulation Desk. You may pick them up until 11:00 PM.'
+  ]);
+
+  await db.run(`
+    INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    'MSG-2',
+    'HO-8842',
+    'REC-8842',
+    'user-julian',
+    'Julian Vance',
+    'student',
+    'Thank you Officer! I have finished my CS lecture and will be over at Cabot in 10 minutes with my student ID.'
+  ]);
 
   // ITEM 2: MacBook Air (Lost by Julian Vance)
   const item2Photos = [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAcKjWV8IgWcnxeSw1FrdcRC0RiT3TpaV9Act-KvsIAWtVzPUBUfWLX9pi9mKYpEOWBR3VsGPrl1pLncvusIsLO2LT8r7hu0mGJnvAm7-QvBcwpGcqo5mzBOMEWlY9E-3r97qfV1XqQraG3wF3UO2mpieOnA9dtOsjgcCYLhiFW9TkffNPEjLDrogMmJ2URHWOqgWE2_cpwE_LjoknCBfdLmtSFgEbjMZuii4rcVqW-CsePe_pPrP6BPw'
   ];
 
-  insertItem.run(
+  await insertItem([
     'REC-8843',
     'lost',
     'Matte Black MacBook Air M2 (Stickers: GitHub, Figma)',
@@ -159,16 +256,29 @@ function seedDatabase() {
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     1,
     new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-  );
+  ]);
 
-  logCustodyEvent('REC-8843', 'user-julian', 'Julian Vance', 'POSTED', 'Lost item report broadcasted with urgent priority flag and $50 student bounty.');
+  await logCustodyEvent('REC-8843', 'user-julian', 'Julian Vance', 'POSTED', 'Lost item report broadcasted with urgent priority flag and $50 student bounty.');
+
+  // Sighting for MacBook Air
+  await db.run(`
+    INSERT INTO sightings (id, item_id, reporter_id, reporter_name, location_clue, notes, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    'STG-1',
+    'REC-8843',
+    'user-maya',
+    'Maya Lin',
+    'Student Union 2nd Floor Lounge (Near Coffee Machine)',
+    'Saw someone hand a laptop to the barista counter around 1:30 PM.'
+  ]);
 
   // ITEM 3: Leather Toyota Key Fob (Found)
   const item3Photos = [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuDr3NRCz2v1n-WoA84ROmVfsxxeoGew2p8GM63GVNt4_-WaGcpMCzD2EKebWsiYpkSTZPM0jlc6KssIwqPHfZuIhskjATtEDCfNMxq9k2lczlCvZyUma9F384vbgo535bfUJzzZEgXkhc_YID2hwxD8YWyLCdL2jC3ZfYyOBPpKVWv9KKdDz4T6XrZknjmm5W54s3xTiULAOhXBk1wTnjXjQWZxlnFGIL3QZoh6m8y7O7Sn1VrGo6asLQ'
   ];
 
-  insertItem.run(
+  await insertItem([
     'REC-8844',
     'found',
     'Leather Toyota Key Fob & Gym Token',
@@ -190,9 +300,9 @@ function seedDatabase() {
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
     0,
     new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-  );
+  ]);
 
-  insertChallenge.run(
+  await insertChallenge([
     'REC-8844',
     JSON.stringify([
       'What number or color is on the plastic membership tag attached to this key ring?'
@@ -202,16 +312,16 @@ function seedDatabase() {
     ]),
     encryptPII('TY-8841-K'),
     hashSecret('TY-8841-K')
-  );
+  ]);
 
-  logCustodyEvent('REC-8844', 'user-maya', 'Derek T.', 'POSTED', 'Found keys safely turned into Malkin Desk 2.');
+  await logCustodyEvent('REC-8844', 'user-maya', 'Derek T.', 'POSTED', 'Found keys safely turned into Malkin Desk 2.');
 
   // ITEM 4: Navy Patagonia Backpack (Lost)
   const item4Photos = [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAB3Zk7D7UHkLyjyHeYK2KNW3-lYISPvG-FYJeDx_oBUmF1jtr7p2RctR6AVFBtlwHFHLfSnXOGrXl1NxkLmBuD8_3M6G6F-ok3f2uU2p6X488RKdHwh8kYHD-9WeNte6sjlUKVvt8rVikKNrVEYorXIW5Xl7ppArsokTI5m1USRsBzvFnV2suKkALAS0LRrSO5Rm31yrZcH8kOkpHJBiX4jQ6GEA6NkGwPUmb0N2XK86dTL3-08iVXlw'
   ];
 
-  insertItem.run(
+  await insertItem([
     'REC-8845',
     'lost',
     'Navy Patagonia Backpack + Steel Bottle',
@@ -233,16 +343,16 @@ function seedDatabase() {
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
     1,
     new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
-  );
+  ]);
 
-  logCustodyEvent('REC-8845', 'user-julian', 'Sophia K.', 'POSTED', 'Urgent lost backpack report logged with course roster alert.');
+  await logCustodyEvent('REC-8845', 'user-julian', 'Sophia K.', 'POSTED', 'Urgent lost backpack report logged with course roster alert.');
 
   // ITEM 5: Sony WH-1000XM5 Headphones (Returned - showcase)
   const item5Photos = [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuB8Wswf5Q5_OaleRZkuD_pIfe3AoMlXtOICoGZ4io8GRDJ3J8af98eLn6Cfq0fm1kbg0Tg2THj2KrTrd7tQpEY7yw8cn9kOpaiG4FAdukk83RztCIG8hV9M_inVAoKSdOcFQNNB-FXJ5kt3HvbuONs4E842g3d8CibCj0nPx4QPD_88lfAhpACtmq0KE5qLmHGyLRk38YAO9o2nnCBq8gIINRn-Fr9G2G2iyfnSwmkk4SIb-CqbjTzZNQ'
   ];
 
-  insertItem.run(
+  await insertItem([
     'REC-8846',
     'found',
     'Sony WH-1000XM5 Noise Canceling Headphones',
@@ -264,13 +374,16 @@ function seedDatabase() {
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
     0,
     new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  );
+  ]);
 
-  logCustodyEvent('REC-8846', 'user-maya', 'Jordan K.', 'POSTED', 'Found item entered into registry.');
-  logCustodyEvent('REC-8846', 'user-admin', 'Officer Marcus Vance', 'ADMIN_APPROVED', 'Claim verified via serial match.');
-  logCustodyEvent('REC-8846', 'user-admin', 'Officer Marcus Vance', 'HANDOVER_CONFIRMED', 'Dual signature and student ID confirmation completed. Item safely returned.');
+  await logCustodyEvent('REC-8846', 'user-maya', 'Jordan K.', 'POSTED', 'Found item entered into registry.');
+  await logCustodyEvent('REC-8846', 'user-admin', 'Officer Marcus Vance', 'ADMIN_APPROVED', 'Claim verified via serial match.');
+  await logCustodyEvent('REC-8846', 'user-admin', 'Officer Marcus Vance', 'HANDOVER_CONFIRMED', 'Dual signature and student ID confirmation completed. Item safely returned.');
 
-  console.log('Seed completed successfully!');
+  // Seed sample bookmark
+  await db.run('INSERT INTO bookmarks (id, user_id, item_id) VALUES (?, ?, ?)', ['BMK-1', 'user-maya', 'REC-8843']);
+
+  console.log('ReTrace Seed completed successfully!');
 }
 
 if (require.main === module) {

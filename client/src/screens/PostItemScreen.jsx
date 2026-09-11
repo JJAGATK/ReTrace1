@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const CAMPUS_BUILDINGS = [
@@ -23,12 +23,13 @@ const ITEM_CATEGORIES = [
 
 export default function PostItemScreen({ onPostCreated, onCancel }) {
   const { user, token } = useAuth();
+  const fileInputRef = useRef(null);
 
   const [itemType, setItemType] = useState('found'); // 'found' or 'lost'
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tech & Audio');
   const [building, setBuilding] = useState('Cabot Science Library');
-  const [floorRoom, setFloorRoom] = useState('3rd Floor Carrel #42 (Near window)');
+  const [floorRoom, setFloorRoom] = useState('');
   const [description, setDescription] = useState('');
   const [custodyType, setCustodyType] = useState('official_desk');
   const [custodyDeskName, setCustodyDeskName] = useState('Cabot Circulation Desk (Staff ID: #L-89)');
@@ -37,19 +38,71 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
   // Verification challenge (Found only)
   const [q1, setQ1] = useState('What specific custom Bluetooth name broadcasts when opening the lid?');
-  const [a1, setA1] = useState("Evan's Pods 2024");
+  const [a1, setA1] = useState('');
   const [q2, setQ2] = useState('What color or initials are on the silicone lanyard string or case hinge?');
-  const [a2, setA2] = useState('M.C.');
-  const [intakeSerial, setIntakeSerial] = useState('H9CGV42K01');
+  const [a2, setA2] = useState('');
+  const [intakeSerial, setIntakeSerial] = useState('');
 
-  // Multi-angle mock photos
-  const [photos, setPhotos] = useState([
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDj-ehWVMfQn7dF8yS4Wdy3kiDqHStQsuTIaVroIBJqJJfrq5A4MXPb6i_8P8a-jkoNTn5ckg2hA4RPN7b3YvgmeeYtZNfn8byz1rt84F8K6bFMXJ-Jshc9r2SRUKBgg9FZ_gmZ7N_d_qTWM-EBwA_sjxSAuk_BSMhrxLYTSXmtKYKt2xSdUsS6-K0v4Cx_farA6TDzG-OFNOoU8_aojIGDYKscb10VKlq5zRQzP4S6hxrA80d-AuWaEA',
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuARgCaAW3sNK09cxfc3bfSu5DhR6athy2IA-cXHTeJa6niO5hy5jcJFiirqG6ib1dVrgUaVkW2QaPnUDSIQvURZvOw3xjEvSK548xgYq8k6L8eu-up699bagl9kCvFyXtfKjZH98m45waIahllahQ8YwKybZSeEou9sjF51Nd1VucIRDNY9_j7gHwAH-mK6IkGYMPP63t04aCPRMRNdBJHtrGxsJZTSYSAOu7dcEAP4TdX3r4EIV5u7Yg'
-  ]);
+  // Attached item photos
+  const [photos, setPhotos] = useState([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
+
+  const handleFileSelect = async (fileList) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+    setUploadingFiles(true);
+
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append('photos', file));
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const uploadedUrls = data.urls || (data.url ? [data.url] : []);
+        if (uploadedUrls.length > 0) {
+          setPhotos(prev => [...prev, ...uploadedUrls]);
+        }
+      } else {
+        // Fallback to Data URLs
+        const dataUrlPromises = files.map(file => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.readAsDataURL(file);
+          });
+        });
+        const dataUrls = await Promise.all(dataUrlPromises);
+        setPhotos(prev => [...prev, ...dataUrls]);
+      }
+    } catch (err) {
+      console.error('Upload error fallback to data URL', err);
+      const dataUrlPromises = files.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => resolve(ev.target.result);
+          reader.readAsDataURL(file);
+        });
+      });
+      const dataUrls = await Promise.all(dataUrlPromises);
+      setPhotos(prev => [...prev, ...dataUrls]);
+    } finally {
+      setUploadingFiles(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePhoto = (indexToRemove) => {
+    setPhotos(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -190,46 +243,99 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
               </span>
             </div>
 
-            <div className="relative group rounded-xl bg-indigo-50/40 border-2 border-dashed border-indigo-200/80 p-5 text-center cursor-pointer hover:bg-indigo-50/70 transition-colors">
+            {/* Hidden file input supporting multiple files */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              multiple
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFileSelect(e.target.files)}
+            />
+
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                handleFileSelect(e.dataTransfer.files);
+              }}
+              className={`relative group rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-all ${
+                isDragging
+                  ? 'bg-indigo-100/70 border-[#4648d4] scale-[1.01]'
+                  : 'bg-indigo-50/40 border-indigo-200/80 hover:bg-indigo-50/70'
+              }`}
+            >
               <div className="flex flex-col items-center justify-center gap-1">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500/15 to-violet-500/15 text-[#4648d4] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-2xl">add_a_photo</span>
+                  <span className="material-symbols-outlined text-2xl">
+                    {uploadingFiles ? 'sync' : 'add_a_photo'}
+                  </span>
                 </div>
                 <p className="text-xs font-semibold text-[#1a1b25] mt-1">
-                  Photos attached from gallery
+                  {uploadingFiles ? 'Uploading photos...' : 'Click to browse or drop photos here'}
                 </p>
                 <p className="text-[11px] text-slate-400 max-w-xs">
-                  Front, serial label, and distinctive markings.
+                  Upload multiple photos (front, serial label, unique marks). Saved locally to uploads.
                 </p>
               </div>
             </div>
 
             {/* Preview Thumbnails */}
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="relative aspect-square rounded-xl overflow-hidden shadow-xs border border-indigo-100">
-                <img src={photos[0]} alt="Angle 1" className="w-full h-full object-cover" />
-                <span className="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-emerald-500/90 text-white text-[9px] font-bold">Front</span>
+            {photos.length > 0 && (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {photos.map((photoUrl, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden shadow-xs border border-indigo-100 group">
+                    <img src={photoUrl} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemovePhoto(idx);
+                      }}
+                      title="Remove photo"
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-xs"
+                    >
+                      <span className="material-symbols-outlined text-xs">close</span>
+                    </button>
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.2 rounded bg-black/50 text-white text-[9px] font-bold">
+                      #{idx + 1}
+                    </span>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-square rounded-xl bg-indigo-50/30 border border-dashed border-indigo-200 hover:bg-indigo-50/60 flex flex-col items-center justify-center text-slate-400 hover:text-[#4648d4] transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-xl">add</span>
+                  <span className="text-[10px]">Add more</span>
+                </button>
               </div>
-              <div className="relative aspect-square rounded-xl overflow-hidden shadow-xs border border-indigo-100">
-                <img src={photos[1]} alt="Angle 2" className="w-full h-full object-cover" />
-                <span className="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-indigo-600/90 text-white text-[9px] font-bold">Serial</span>
-              </div>
-              <div className="aspect-square rounded-xl bg-indigo-50/30 border border-dashed border-indigo-200 flex flex-col items-center justify-center text-slate-400">
-                <span className="material-symbols-outlined text-xl">add</span>
-                <span className="text-[10px]">Context</span>
-              </div>
-            </div>
+            )}
 
             {/* AI Auto-Tag Analysis Box */}
             <div className="mt-3 p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-2.5">
               <span className="material-symbols-outlined text-[#4648d4] text-lg shrink-0 mt-0.5">psychology</span>
-              <div className="text-xs">
+              <div className="text-xs flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#1a1b25]">Campus AI Autodetect</span>
-                  <span className="text-[10px] text-[#4648d4] font-bold">98.4% Confidence</span>
+                  <span className="font-bold text-[#1a1b25]">Campus AI Match Engine</span>
+                  <span className="text-[10px] text-[#4648d4] font-bold">{photos.length > 0 ? 'Image Indexed' : 'Ready for Image'}</span>
                 </div>
                 <p className="text-[11px] text-[#464554] mt-0.5">
-                  Recognized: <strong>{title || 'Apple AirPods Pro (2nd Gen)'}</strong>.
+                  {title ? (
+                    <>Categorizing: <strong>{title}</strong> under <strong>{category}</strong></>
+                  ) : (
+                    'Upload photos or enter an item title for campus auto-classification.'
+                  )}
                 </p>
               </div>
             </div>

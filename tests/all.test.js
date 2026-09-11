@@ -2,7 +2,7 @@ const assert = require('assert');
 const { encryptPII, decryptPII, createLogHash, hashSecret } = require('../server/crypto');
 const { evaluateClaim, compareAnswers } = require('../server/matcher');
 
-console.log('--- Running Back2You Automated Security & Verification Tests ---');
+console.log('--- Running ReTrace Automated Security & Verification Tests ---');
 
 // Test 1: PII Encryption & Decryption (AES-256-GCM)
 {
@@ -122,4 +122,5 @@ console.log('--- Running Back2You Automated Security & Verification Tests ---');
   console.log('✓ Test 3: Immutable SHA-256 custody chain & tamper detection passed.');
 }
 
-console.log('\nAll Back2You Security & Verification Tests Passed Successfully! (3/3)');
+console.log('\nAll ReTrace Security & Verification Tests Passed Successfully! (3/3)');
+

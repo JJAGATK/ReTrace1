@@ -64,11 +64,21 @@ const CAMPUS_ZONES = [
   }
 ];
 
-export default function CampusMapScreen({ onSelectItem }) {
+export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [selectedZone, setSelectedZone] = useState(CAMPUS_ZONES[0]);
   const [filterType, setFilterType] = useState('all'); // 'all', 'found', 'lost'
+
+  useEffect(() => {
+    if (focusedBuilding) {
+      const match = CAMPUS_ZONES.find(z => 
+        z.name.toLowerCase().includes(focusedBuilding.toLowerCase()) || 
+        focusedBuilding.toLowerCase().includes(z.name.toLowerCase())
+      );
+      if (match) setSelectedZone(match);
+    }
+  }, [focusedBuilding]);
 
   useEffect(() => {
     async function loadItems() {
@@ -76,7 +86,7 @@ export default function CampusMapScreen({ onSelectItem }) {
         const res = await fetch('/api/items');
         if (res.ok) {
           const data = await res.json();
-          setItems(data.items);
+          setItems(data.items || []);
         }
       } catch (e) {
         console.error('Failed to load items for map', e);
