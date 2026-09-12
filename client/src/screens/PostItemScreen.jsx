@@ -207,60 +207,60 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
         <button
           type="button"
           onClick={() => setItemType('found')}
-          className={`p-4 rounded-2xl flex items-center gap-3 text-left transition-all border-2 cursor-pointer ${
+          className={`p-4 rounded-2xl flex items-center gap-3 text-left transition-colors border cursor-pointer ${
             itemType === 'found'
-              ? 'bg-emerald-50/80 border-emerald-500 shadow-sm'
+              ? 'bg-emerald-50 border-emerald-500 shadow-2xs'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            itemType === 'found' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500'
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            itemType === 'found' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'
           }`}>
-            <span className="material-symbols-outlined text-xl">back_hand</span>
+            <span className="material-symbols-outlined text-lg">back_hand</span>
           </div>
           <div>
-            <div className="text-sm font-bold text-[#1a1b25]">I Found an Item</div>
-            <div className="text-xs text-slate-500">I want to return it to the owner</div>
+            <div className="text-sm font-semibold text-slate-900">I Found an Item</div>
+            <div className="text-xs text-slate-500">I want to return it safely</div>
           </div>
         </button>
 
         <button
           type="button"
           onClick={() => setItemType('lost')}
-          className={`p-4 rounded-2xl flex items-center gap-3 text-left transition-all border-2 cursor-pointer ${
+          className={`p-4 rounded-2xl flex items-center gap-3 text-left transition-colors border cursor-pointer ${
             itemType === 'lost'
-              ? 'bg-rose-50/80 border-[#F43F5E] shadow-sm'
+              ? 'bg-rose-50 border-rose-500 shadow-2xs'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            itemType === 'lost' ? 'bg-[#F43F5E] text-white' : 'bg-slate-100 text-slate-500'
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            itemType === 'lost' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-500'
           }`}>
-            <span className="material-symbols-outlined text-xl">travel_explore</span>
+            <span className="material-symbols-outlined text-lg">travel_explore</span>
           </div>
           <div>
-            <div className="text-sm font-bold text-[#1a1b25]">I Lost an Item</div>
-            <div className="text-xs text-slate-500">Ask campus classmates for help</div>
+            <div className="text-sm font-semibold text-slate-900">I Lost an Item</div>
+            <div className="text-xs text-slate-500">Ask campus for recovery help</div>
           </div>
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         
         {/* SECTION 1: Item Details */}
-        <div className="glass-card rounded-2xl p-5 sm:p-6 border border-indigo-100 flex flex-col gap-4">
-          <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-3">
-            <span className="w-6 h-6 rounded-full bg-indigo-100 text-[#4648d4] text-xs font-bold flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center">
               1
             </span>
-            <h2 className="text-sm sm:text-base font-bold text-[#1a1b25]">
+            <h2 className="text-sm sm:text-base font-semibold text-slate-900">
               What is the item?
             </h2>
           </div>
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Item Name *
             </label>
             <input
@@ -269,13 +269,13 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={itemType === 'found' ? "e.g. Blue Hydro Flask, Apple AirPods Pro, Student ID Card" : "e.g. Matte Black MacBook Air M2, Brown Leather Wallet"}
-              className="w-full px-4 py-2.5 rounded-xl bg-white border border-indigo-200/80 text-sm text-[#1a1b25] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             />
           </div>
 
           {/* Category Chips */}
           <div>
-            <label className="block text-xs font-bold text-[#1a1b25] mb-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
               Category *
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -286,13 +286,13 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                     key={cat.id}
                     type="button"
                     onClick={() => setCategory(cat.id)}
-                    className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border ${
+                    className={`p-2.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors cursor-pointer border ${
                       isSelected
-                        ? 'btn-gradient-indigo text-white border-transparent shadow-sm'
-                        : 'bg-indigo-50/40 hover:bg-indigo-50 text-[#464554] border-indigo-100/80'
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-lg">{cat.icon}</span>
+                    <span className="material-symbols-outlined text-base">{cat.icon}</span>
                     <span className="truncate">{cat.label}</span>
                   </button>
                 );
@@ -300,13 +300,13 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
             </div>
 
             {category === 'Other' && (
-              <div className="mt-3">
+              <div className="mt-2.5">
                 <input
                   type="text"
                   value={customCategory}
                   onChange={(e) => setCustomCategory(e.target.value)}
                   placeholder="Specify item category (e.g. Umbrella, Calculator, Jewelry...)"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
             )}
@@ -314,7 +314,7 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Description (Optional)
             </label>
             <textarea
@@ -322,23 +322,23 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe color, brand, condition, or any distinctive marks..."
-              className="w-full px-4 py-2.5 rounded-xl bg-white border border-indigo-200/80 text-xs sm:text-sm text-[#1a1b25] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none leading-relaxed"
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none leading-relaxed"
             />
           </div>
 
           {/* Lost Item Specifics: Reward & Urgent */}
           {itemType === 'lost' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-indigo-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
               <div>
-                <label className="block text-xs font-bold text-[#1a1b25] mb-1">
-                  Optional Reward / Bounty
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Optional Reward
                 </label>
                 <input
                   type="text"
                   value={reward}
                   onChange={(e) => setReward(e.target.value)}
-                  placeholder="e.g. $20 Reward or Free Coffee"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  placeholder="e.g. $20 or Free Coffee"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
 
@@ -350,8 +350,8 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                   onChange={(e) => setIsUrgent(e.target.checked)}
                   className="w-4 h-4 text-rose-600 rounded accent-rose-600 cursor-pointer"
                 />
-                <label htmlFor="urgentCheck" className="text-xs font-bold text-rose-600 cursor-pointer">
-                  Mark as Urgent (Need back immediately)
+                <label htmlFor="urgentCheck" className="text-xs font-medium text-rose-700 cursor-pointer">
+                  Mark as Urgent
                 </label>
               </div>
             </div>
@@ -359,19 +359,19 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
         </div>
 
         {/* SECTION 2: Location & Photos */}
-        <div className="glass-card rounded-2xl p-5 sm:p-6 border border-indigo-100 flex flex-col gap-4">
-          <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-3">
-            <span className="w-6 h-6 rounded-full bg-indigo-100 text-[#4648d4] text-xs font-bold flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center">
               2
             </span>
-            <h2 className="text-sm sm:text-base font-bold text-[#1a1b25]">
+            <h2 className="text-sm sm:text-base font-semibold text-slate-900">
               {itemType === 'found' ? 'Where did you find it?' : 'Where did you lose it?'}
             </h2>
           </div>
 
           {/* Campus Building Selector */}
           <div>
-            <label className="block text-xs font-bold text-[#1a1b25] mb-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
               Campus Location *
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -380,13 +380,13 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                   key={b.name}
                   type="button"
                   onClick={() => setBuilding(b.name)}
-                  className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border ${
+                  className={`p-2.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-colors cursor-pointer border ${
                     building === b.name
-                      ? 'btn-gradient-indigo text-white border-transparent shadow-sm'
-                      : 'bg-indigo-50/40 hover:bg-indigo-50 text-[#464554] border-indigo-100/80'
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-lg">{b.icon}</span>
+                  <span className="material-symbols-outlined text-base">{b.icon}</span>
                   <span className="truncate">{b.name}</span>
                 </button>
               ))}
@@ -395,21 +395,21 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
           {/* Specific Room / Area */}
           <div>
-            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Specific Room or Spot (Optional)
             </label>
             <input
               type="text"
               value={floorRoom}
               onChange={(e) => setFloorRoom(e.target.value)}
-              placeholder="e.g. 3rd Floor Carrel #42, Booth near cafe, Locker Room 102"
-              className="w-full px-4 py-2 rounded-xl bg-white border border-indigo-200/80 text-xs sm:text-sm text-[#1a1b25] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+              placeholder="e.g. 3rd Floor Carrel #42, Booth near cafe, Lounge"
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             />
           </div>
 
           {/* Photos Upload */}
-          <div className="pt-2 border-t border-indigo-100">
-            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+          <div className="pt-2 border-t border-slate-100">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Photos (Optional)
             </label>
 
@@ -437,21 +437,21 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                 setIsDragging(false);
                 handleFileSelect(e.dataTransfer.files);
               }}
-              className={`rounded-2xl border-2 border-dashed p-4 sm:p-5 text-center cursor-pointer transition-all ${
+              className={`rounded-2xl border-2 border-dashed p-4 sm:p-5 text-center cursor-pointer transition-colors ${
                 isDragging
-                  ? 'bg-indigo-100/80 border-[#4648d4]'
-                  : 'bg-indigo-50/40 border-indigo-200 hover:bg-indigo-50/80'
+                  ? 'bg-indigo-50 border-indigo-500'
+                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'
               }`}
             >
               <div className="flex flex-col items-center justify-center gap-1">
-                <span className="material-symbols-outlined text-2xl sm:text-3xl text-[#4648d4]">
+                <span className="material-symbols-outlined text-2xl text-slate-400">
                   {uploadingFiles ? 'sync' : 'add_a_photo'}
                 </span>
-                <p className="text-xs font-bold text-[#1a1b25]">
+                <p className="text-xs font-semibold text-slate-700">
                   {uploadingFiles ? 'Uploading photo...' : 'Click to upload or drag photos here'}
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  PNG, JPG or JPEG (take a photo with your phone)
+                  PNG or JPG image
                 </p>
               </div>
             </div>
@@ -460,12 +460,12 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
             {photos.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {photos.map((url, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-indigo-200 group shadow-xs">
+                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 group">
                     <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-xs"
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-colors"
                       title="Remove"
                     >
                       <span className="material-symbols-outlined text-xs">close</span>
@@ -479,89 +479,93 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
         {/* SECTION 3: Custody & Verification (Only for Found items) */}
         {itemType === 'found' && (
-          <div className="glass-card rounded-2xl p-5 sm:p-6 border border-indigo-100 flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-3">
-              <span className="w-6 h-6 rounded-full bg-indigo-100 text-[#4648d4] text-xs font-bold flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+              <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center">
                 3
               </span>
-              <h2 className="text-sm sm:text-base font-bold text-[#1a1b25]">
-                Where is the item now & Owner Verification
+              <h2 className="text-sm sm:text-base font-semibold text-slate-900">
+                Safekeeping & Verification
               </h2>
             </div>
 
             {/* Current Item Location Option */}
             <div>
-              <label className="block text-xs font-bold text-[#1a1b25] mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
                 Where is the item right now?
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setCustodyType('official_desk')}
-                  className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
+                  className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer flex items-start gap-3 ${
                     custodyType === 'official_desk'
-                      ? 'bg-indigo-50/80 border-[#4648d4] shadow-xs'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-xl text-[#4648d4]">desk</span>
+                  <span className="material-symbols-outlined text-xl">desk</span>
                   <div>
-                    <div className="text-xs font-bold text-[#1a1b25]">Turned into Campus Front Desk</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">e.g. Cabot Circulation Desk, Library staff</div>
+                    <div className="text-xs font-semibold">Campus Front Desk</div>
+                    <div className={`text-[11px] mt-0.5 ${custodyType === 'official_desk' ? 'text-slate-300' : 'text-slate-500'}`}>
+                      e.g. Cabot Circulation Desk
+                    </div>
                   </div>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setCustodyType('self_custody')}
-                  className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
+                  className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer flex items-start gap-3 ${
                     custodyType === 'self_custody'
-                      ? 'bg-indigo-50/80 border-[#4648d4] shadow-xs'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-xl text-emerald-600">lock</span>
+                  <span className="material-symbols-outlined text-xl">lock</span>
                   <div>
-                    <div className="text-xs font-bold text-[#1a1b25]">I Have It Safely With Me</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">I will hand it over once verified</div>
+                    <div className="text-xs font-semibold">With Reporter</div>
+                    <div className={`text-[11px] mt-0.5 ${custodyType === 'self_custody' ? 'text-slate-300' : 'text-slate-500'}`}>
+                      I will hand it over once verified
+                    </div>
                   </div>
                 </button>
               </div>
             </div>
 
             {/* Secret Verification Question */}
-            <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 flex flex-col gap-3">
-              <div className="flex items-center gap-1.5 text-[#4648d4]">
-                <span className="material-symbols-outlined text-lg">help</span>
-                <span className="text-xs font-bold">Secret Verification Question (Recommended)</span>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
+              <div className="flex items-center gap-1.5 text-slate-800">
+                <span className="material-symbols-outlined text-base">help</span>
+                <span className="text-xs font-semibold">Secret Verification Question (Recommended)</span>
               </div>
-              <p className="text-xs text-[#464554]">
-                Ask something only the true owner would know to prove ownership (e.g., lock screen wallpaper, engraved initials, what is inside the bag).
+              <p className="text-xs text-slate-500">
+                Ask something only the true owner knows to confirm ownership.
               </p>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#1a1b25] mb-1">
-                  Question (Shown to person claiming the item)
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Question (Shown to claimant)
                 </label>
                 <input
                   type="text"
                   value={q1}
                   onChange={(e) => setQ1(e.target.value)}
-                  placeholder="e.g. What color is the keychain? Or what is the lockscreen wallpaper?"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  placeholder="e.g. What color is the case keychain or lockscreen?"
+                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#6b38d4] mb-1">
-                  Secret Answer (Kept private, evaluated automatically)
+                <label className="block text-[11px] font-semibold text-indigo-700 mb-1">
+                  Secret Answer (Private, evaluated automatically)
                 </label>
                 <input
                   type="text"
                   value={a1}
                   onChange={(e) => setA1(e.target.value)}
                   placeholder="e.g. Red lanyard with initials MK"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-purple-200 text-xs text-purple-950 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                  className="w-full px-3 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -569,14 +573,14 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
         )}
 
         {/* Submit Bar */}
-        <div className="glass-card rounded-2xl p-4 border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
           <div>
             {feedback && (
-              <span className="text-xs font-bold text-[#4648d4]">{feedback}</span>
+              <span className="text-xs font-semibold text-indigo-600">{feedback}</span>
             )}
             {!feedback && (
               <span className="text-xs text-slate-500">
-                {itemType === 'found' ? 'Your report will be immediately visible on the campus live feed.' : 'Classmates will be notified to help spot your item.'}
+                {itemType === 'found' ? 'Your report will be posted immediately to the live feed.' : 'Classmates will be alerted to help find your item.'}
               </span>
             )}
           </div>
@@ -586,7 +590,7 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
               <button
                 type="button"
                 onClick={onCancel}
-                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-[#1a1b25] cursor-pointer"
+                className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-medium text-slate-700 cursor-pointer"
               >
                 Cancel
               </button>
@@ -594,12 +598,12 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 sm:flex-initial px-6 py-2.5 rounded-full btn-gradient-indigo text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-base">
                 {submitting ? 'sync' : 'send'}
               </span>
-              <span>{itemType === 'found' ? 'Post Found Item' : 'Post Lost Item'}</span>
+              <span>{itemType === 'found' ? 'Publish Found Report' : 'Publish Lost Report'}</span>
             </button>
           </div>
         </div>

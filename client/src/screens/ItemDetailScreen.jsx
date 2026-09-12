@@ -279,34 +279,34 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       )}
 
       {/* Top Bar with Back & Actions */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-2.5">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white text-[#1a1b25] border border-indigo-100 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-medium shadow-xs transition-all cursor-pointer"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
-          <span>Back to Live Feed</span>
+          <span>Back to Feed</span>
         </button>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handleToggleBookmark}
             title={isBookmarked ? 'Remove Bookmark' : 'Save to Bookmarks'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer shadow-xs ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer shadow-xs ${
               isBookmarked
-                ? 'bg-amber-500/15 border-amber-400/40 text-amber-700'
-                : 'bg-white/80 hover:bg-white border-indigo-100 text-slate-600'
+                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
             }`}
           >
             <span className={`material-symbols-outlined text-sm ${isBookmarked ? 'fill-current text-amber-600' : 'text-slate-400'}`}>
               bookmark
             </span>
-            <span>{isBookmarked ? 'Saved' : 'Save Listing'}</span>
+            <span>{isBookmarked ? 'Saved' : 'Save'}</span>
           </button>
 
           <button
             onClick={handleOpenCustody}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200/70 text-[#4648d4] text-xs font-semibold cursor-pointer"
+            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200/60 text-indigo-700 text-xs font-medium cursor-pointer transition-colors"
           >
             <span className="material-symbols-outlined text-sm">verified_user</span>
             <span>Custody Audit</span>
@@ -317,29 +317,29 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
             <button
               onClick={() => setShowDeleteModal(true)}
               title={user?.role === 'admin' ? "Delete Listing (Security Administrator)" : "Delete My Listing"}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-600 hover:text-white border border-rose-200 text-rose-600 text-xs font-bold transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100/80 border border-rose-200 text-rose-700 text-xs font-medium transition-all cursor-pointer shadow-xs"
             >
               <span className="material-symbols-outlined text-sm">delete</span>
-              <span>{user?.role === 'admin' ? 'Delete Post (Admin)' : 'Delete Post'}</span>
+              <span>{user?.role === 'admin' ? 'Delete (Admin)' : 'Delete Post'}</span>
             </button>
           )}
 
-          <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-bold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Campus Net Active</span>
+          <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-xs font-medium flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>Active</span>
           </span>
         </div>
       </div>
 
       {/* Two-Column Balanced Responsive Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         
         {/* LEFT COLUMN: Media Stage & Location (7 Cols) */}
         <section className="lg:col-span-7 flex flex-col gap-4">
           
           {/* Hero Gallery Card */}
-          <div className="glass-panel rounded-2xl md:rounded-3xl p-3 sm:p-4 shadow-md flex flex-col gap-3 border border-indigo-200/50">
-            <div className="relative w-full aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden bg-indigo-50/50 group">
+          <div className="bg-white rounded-2xl p-4 shadow-xs flex flex-col gap-3 border border-slate-200/80">
+            <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 group">
               <img
                 src={photos[activePhotoIdx]}
                 alt={item.title}
@@ -391,37 +391,37 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
 
           {/* Verification Telemetry Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="glass-panel-subtle rounded-2xl p-3 flex items-center gap-3 border border-indigo-100/70">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-600 shrink-0">
+            <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 border border-slate-200/80 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-lg">image_search</span>
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-[#1a1b25]">Exif Metadata Verified</div>
-                <div className="text-[11px] text-[#464554] truncate">No tampering • 3024×4032 Original</div>
+                <div className="text-xs font-semibold text-slate-800">Exif Metadata Verified</div>
+                <div className="text-[11px] text-slate-500 truncate">No tampering • 3024×4032 Original</div>
               </div>
             </div>
 
-            <div className="glass-panel-subtle rounded-2xl p-3 flex items-center gap-3 border border-indigo-100/70">
-              <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-[#4648d4] shrink-0">
+            <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 border border-slate-200/80 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-lg">wifi_tethering</span>
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-[#1a1b25]">Campus Wi-Fi Proximity</div>
-                <div className="text-[11px] text-[#464554] truncate">Matched AP: Cabot-FL3-East</div>
+                <div className="text-xs font-semibold text-slate-800">Campus Wi-Fi Proximity</div>
+                <div className="text-[11px] text-slate-500 truncate">Matched AP: Cabot-FL3-East</div>
               </div>
             </div>
           </div>
 
           {/* Radar Coarse Map View */}
-          <div className="glass-panel rounded-2xl md:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 border border-indigo-200/50">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3 border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-[#4648d4]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
                   <span className="material-symbols-outlined text-base">near_me</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#1a1b25]">Discovery Location</h3>
-                  <p className="text-xs text-[#464554]">{item.coarse_location} — {item.floor_room}</p>
+                  <h3 className="font-semibold text-xs sm:text-sm text-slate-800">Discovery Location</h3>
+                  <p className="text-xs text-slate-500">{item.coarse_location} — {item.floor_room}</p>
                 </div>
               </div>
               <button
@@ -432,46 +432,46 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                     showToast(`Viewing ${item.coarse_location} on Campus Map`);
                   }
                 }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-[#4648d4] font-semibold text-xs border border-indigo-200/70 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs border border-slate-200 cursor-pointer transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">directions</span>
-                <span>Campus Directions</span>
+                <span>Directions</span>
               </button>
             </div>
 
             {/* Simulated campus radar */}
-            <div className="relative w-full h-44 rounded-xl overflow-hidden bg-[#eeecfc] border border-indigo-200/60 flex items-center justify-center">
-              <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#4648d4_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div className="relative w-full h-44 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
               <div className="relative z-10 flex flex-col items-center">
                 <span className="relative flex h-10 w-10 items-center justify-center">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4648d4] opacity-40"></span>
-                  <span className="relative inline-flex rounded-full h-8 w-8 bg-[#4648d4] items-center justify-center text-white shadow-md">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-30"></span>
+                  <span className="relative inline-flex rounded-full h-8 w-8 bg-indigo-600 items-center justify-center text-white shadow-xs">
                     <span className="material-symbols-outlined text-base">
                       {item.category === 'Electronics' ? 'devices' : item.category === 'Wallets & IDs' ? 'badge' : 'inventory_2'}
                     </span>
                   </span>
                 </span>
-                <div className="mt-2 px-2.5 py-0.5 rounded-full bg-white shadow-xs text-[11px] font-bold text-[#1a1b25] border border-indigo-100">
+                <div className="mt-2 px-2.5 py-0.5 rounded-full bg-white shadow-xs text-[11px] font-semibold text-slate-800 border border-slate-200">
                   {item.coarse_location}
                 </div>
               </div>
-              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md shadow-xs flex items-center gap-1.5 text-[11px] font-medium text-[#1a1b25] border border-indigo-100">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Coarse Zone (Exact Coordinates Protected by ReTrace)</span>
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-white shadow-xs flex items-center gap-1.5 text-[11px] font-medium text-slate-700 border border-slate-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Coarse Zone (Protected)</span>
               </div>
             </div>
           </div>
 
-          {/* Community Sightings History (Especially for Lost Items) */}
-          <div className="glass-panel rounded-2xl md:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 border border-indigo-200/50">
+          {/* Community Sightings History */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3 border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#4648d4] text-lg">share_location</span>
-                <h3 className="font-bold text-sm text-[#1a1b25]">Community Sightings ({sightings.length})</h3>
+                <span className="material-symbols-outlined text-indigo-600 text-lg">share_location</span>
+                <h3 className="font-semibold text-xs sm:text-sm text-slate-800">Community Sightings ({sightings.length})</h3>
               </div>
               <button
                 onClick={() => setShowSightingModal(true)}
-                className="text-xs text-[#4648d4] font-semibold hover:underline cursor-pointer"
+                className="text-xs text-indigo-600 font-medium hover:text-indigo-700 cursor-pointer"
               >
                 + Add Sighting
               </button>
@@ -480,23 +480,23 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
             {loadingSightings ? (
               <p className="text-xs text-slate-400 py-2">Loading campus reports...</p>
             ) : sightings.length === 0 ? (
-              <p className="text-xs text-[#464554] italic py-2">
+              <p className="text-xs text-slate-400 italic py-1">
                 No sightings reported yet. If you have spotted this item on campus, click "+ Add Sighting" to help the owner.
               </p>
             ) : (
               <div className="flex flex-col gap-2">
                 {sightings.map((s, idx) => (
-                  <div key={s.id || idx} className="p-2.5 rounded-xl bg-white/70 border border-indigo-100/80 flex items-start gap-2.5 text-xs">
+                  <div key={s.id || idx} className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-2.5 text-xs">
                     <span className="material-symbols-outlined text-amber-500 text-sm mt-0.5">location_on</span>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#1a1b25]">{s.location_description}</span>
+                        <span className="font-semibold text-slate-800">{s.location_description}</span>
                         <span className="text-[10px] text-slate-400">{new Date(s.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
-                      {s.notes && <p className="text-[#464554] mt-0.5">{s.notes}</p>}
+                      {s.notes && <p className="text-slate-600 mt-0.5">{s.notes}</p>}
                       <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
                         <span>Reported by</span>
-                        <strong className="text-indigo-600">{s.reporter_name || 'Verified Student'}</strong>
+                        <strong className="text-indigo-600 font-medium">{s.reporter_name || 'Verified Student'}</strong>
                       </div>
                     </div>
                   </div>
@@ -507,79 +507,79 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
 
         </section>
 
-        {/* RIGHT COLUMN: Liquid Glass Detail & Claim Card (5 Cols) */}
+        {/* RIGHT COLUMN: Minimalist Detail & Claim Card (5 Cols) */}
         <section className="lg:col-span-5 flex flex-col gap-4">
-          <div className="glass-panel rounded-2xl md:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 border border-indigo-200/60 shadow-lg shadow-indigo-500/5">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 flex flex-col gap-4 border border-slate-200/80 shadow-xs">
             
             {/* Top Badge & ID Row */}
             <div className="flex items-center justify-between">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
                 item.type === 'found'
-                  ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/25'
-                  : 'bg-rose-500/10 text-rose-700 border border-rose-500/25'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
               }`}>
-                <span className={`w-2 h-2 rounded-full ${item.type === 'found' ? 'bg-emerald-500' : 'bg-[#F43F5E]'}`}></span>
-                <span>{item.type === 'found' ? 'FOUND & SAFEKEEPING' : 'LOST REPORT'}</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${item.type === 'found' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                <span>{item.type === 'found' ? 'FOUND' : 'LOST REPORT'}</span>
               </span>
-              <span className="text-xs font-semibold text-slate-400 tracking-wide font-mono">
+              <span className="text-xs font-mono text-slate-400">
                 ID #{item.id}
               </span>
             </div>
 
             {/* Header */}
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
+              <h1 className="text-xl font-bold text-slate-900">
                 {item.title}
               </h1>
-              <p className="text-xs sm:text-sm text-[#464554] mt-1 flex items-center gap-1.5">
+              <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
                 <span>{item.category}</span>
                 <span>•</span>
-                <span className="text-[#4648d4] font-semibold">Eligible for Campus Verification</span>
+                <span className="text-indigo-600 font-medium">Campus Verified</span>
               </p>
             </div>
 
             {/* Description */}
-            <p className="text-xs sm:text-sm text-[#464554] leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               {item.description}
             </p>
 
             {/* Safekeeping Desk Node */}
-            <div className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-indigo-100 text-[#4648d4] shrink-0 mt-0.5">
-                <span className="material-symbols-outlined text-lg">local_police</span>
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+              <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 shrink-0 mt-0.5">
+                <span className="material-symbols-outlined text-base">local_police</span>
               </div>
               <div className="text-xs leading-relaxed">
-                <div className="font-bold text-[#1a1b25] mb-0.5">Secure Physical Custody</div>
-                <p className="text-[#464554]">
-                  Stored at the <strong className="text-[#1a1b25] font-semibold">{item.custody_desk_name || 'Cabot Library Circulation Desk'}</strong>. Duty librarian available until 11:00 PM.
+                <div className="font-semibold text-slate-800 mb-0.5">Secure Custody Location</div>
+                <p className="text-slate-500">
+                  Stored at <strong className="text-slate-700 font-medium">{item.custody_desk_name || 'Cabot Circulation Desk'}</strong>. Available during service hours.
                 </p>
               </div>
             </div>
 
             {/* Finder Trust Profile Widget */}
-            <div className="p-3.5 rounded-2xl bg-white/70 border border-indigo-100 flex items-center justify-between gap-3">
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 flex items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
                   <img
                     alt={item.reporter_name}
-                    className="w-11 h-11 rounded-full object-cover ring-2 ring-indigo-200 shadow-xs"
+                    className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200"
                     src={item.reporter_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
-                    <span className="material-symbols-outlined text-[10px]">check</span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px]">
+                    ✓
                   </span>
                 </div>
                 <div className="min-w-0 flex flex-col">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-xs text-[#1a1b25] truncate">{item.reporter_name}</span>
-                    <span className="px-1.5 py-0.2 rounded bg-indigo-50 text-[10px] font-semibold text-indigo-700">
+                    <span className="font-semibold text-xs text-slate-800 truncate">{item.reporter_name}</span>
+                    <span className="px-1.5 py-0.2 rounded bg-slate-100 text-[10px] font-medium text-slate-600">
                       Undergrad '25
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#464554] mt-0.5">
-                    <span className="text-emerald-600 font-semibold">14 Returns</span>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
+                    <span className="text-emerald-600 font-medium">14 Returns</span>
                     <span>•</span>
-                    <span className="text-[#4648d4] font-semibold">100% Trust Score</span>
+                    <span className="text-indigo-600 font-medium">100% Trust</span>
                   </div>
                 </div>
               </div>
@@ -591,7 +591,7 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                     showToast('Opening secure handover dispatch chat');
                   }
                 }}
-                className="p-2 rounded-full text-slate-500 hover:text-[#4648d4] hover:bg-indigo-50 transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
                 title="Message Finder / Handover Desk"
               >
                 <span className="material-symbols-outlined text-lg">chat_bubble_outline</span>
@@ -600,15 +600,15 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
 
             {/* Claim Verification Security Criteria */}
             {item.type === 'found' && (
-              <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200/70 flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5 text-[#6b38d4]">
+              <div className="p-3.5 rounded-xl bg-indigo-50/50 border border-indigo-100 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-indigo-700">
                   <span className="material-symbols-outlined text-base">shield_lock</span>
-                  <span className="font-bold text-xs uppercase tracking-wide">Verification Required</span>
+                  <span className="font-semibold text-xs uppercase tracking-wide">Verification Required</span>
                 </div>
-                <p className="text-xs text-[#464554]">To claim this item securely, you will need to confirm:</p>
-                <ul className="list-disc list-inside text-xs text-[#1a1b25] font-medium space-y-1 pl-1 pt-0.5">
+                <p className="text-xs text-slate-600">To claim this item, please confirm:</p>
+                <ul className="list-disc list-inside text-xs text-slate-700 space-y-0.5 pl-1 pt-0.5">
                   <li>Bluetooth broadcast name or case markings</li>
-                  <li>Approximate timestamp in Apple Find My or receipt proof</li>
+                  <li>Approximate timestamp or receipt details</li>
                 </ul>
               </div>
             )}
@@ -619,23 +619,23 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                 <button
                   type="button"
                   onClick={() => setShowClaimModal(true)}
-                  className="w-full py-3 px-6 rounded-full btn-gradient-indigo text-white font-bold text-sm shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 px-5 rounded-lg btn-gradient-indigo text-white font-semibold text-xs shadow-xs active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-lg">verified_user</span>
-                  <span>Claim This Item (Proof Challenge)</span>
+                  <span className="material-symbols-outlined text-base">verified_user</span>
+                  <span>Claim Item (Verification Challenge)</span>
                 </button>
               ) : item.type === 'lost' ? (
                 <button
                   type="button"
                   onClick={() => setShowSightingModal(true)}
-                  className="w-full py-3 px-6 rounded-full bg-[#F43F5E] hover:bg-rose-600 text-white font-bold text-sm shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 px-5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-lg">visibility</span>
+                  <span className="material-symbols-outlined text-base">visibility</span>
                   <span>I've Spotted This Item</span>
                 </button>
               ) : (
-                <div className="w-full py-3 px-6 rounded-full bg-emerald-100 text-emerald-800 text-center font-bold text-xs">
-                  Item Safely Returned to Verified Owner
+                <div className="w-full py-2.5 px-4 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-center font-semibold text-xs">
+                  Item Safely Returned to Owner
                 </div>
               )}
 
@@ -648,9 +648,9 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                       showToast('Connecting to Cabot Desk dispatch...');
                     }
                   }}
-                  className="py-2 px-2 rounded-full bg-white hover:bg-indigo-50 text-[#1a1b25] font-semibold text-xs transition-colors flex items-center justify-center gap-1 border border-indigo-100 cursor-pointer"
+                  className="py-2 px-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors flex items-center justify-center gap-1 border border-slate-200 cursor-pointer shadow-xs"
                 >
-                  <span className="material-symbols-outlined text-base text-[#4648d4]">chat</span>
+                  <span className="material-symbols-outlined text-sm text-indigo-600">chat</span>
                   <span>Desk</span>
                 </button>
                 <button
@@ -658,25 +658,25 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                     navigator.clipboard?.writeText(window.location.href);
                     showToast('Shareable link copied to clipboard!');
                   }}
-                  className="py-2 px-2 rounded-full bg-white hover:bg-indigo-50 text-[#1a1b25] font-semibold text-xs transition-colors flex items-center justify-center gap-1 border border-indigo-100 cursor-pointer"
+                  className="py-2 px-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors flex items-center justify-center gap-1 border border-slate-200 cursor-pointer shadow-xs"
                 >
-                  <span className="material-symbols-outlined text-base text-[#4648d4]">share</span>
+                  <span className="material-symbols-outlined text-sm text-slate-500">share</span>
                   <span>Share</span>
                 </button>
                 <button
                   onClick={() => setShowReportModal(true)}
-                  className="py-2 px-2 rounded-full bg-white hover:bg-rose-50 text-slate-600 font-semibold text-xs transition-colors flex items-center justify-center gap-1 border border-indigo-100 cursor-pointer"
+                  className="py-2 px-2 rounded-lg bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-medium text-xs transition-colors flex items-center justify-center gap-1 border border-slate-200 cursor-pointer shadow-xs"
                 >
-                  <span className="material-symbols-outlined text-base text-rose-500">flag</span>
+                  <span className="material-symbols-outlined text-sm text-rose-500">flag</span>
                   <span>Report</span>
                 </button>
               </div>
             </div>
 
             {/* Handover Notice */}
-            <div className="flex items-center gap-2 text-[#464554] text-[11px] pt-1">
-              <span className="material-symbols-outlined text-[#6b38d4] text-base shrink-0">qr_code_2</span>
-              <span>Physical handover verified via dynamic QR code & student ID at Cabot Desk.</span>
+            <div className="flex items-center gap-2 text-slate-500 text-[11px] pt-1">
+              <span className="material-symbols-outlined text-indigo-600 text-base shrink-0">qr_code_2</span>
+              <span>Physical handover verified via student ID & QR pass at circulation desk.</span>
             </div>
 
           </div>

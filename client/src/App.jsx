@@ -86,13 +86,12 @@ function MainApp() {
   return (
     <>
       {isLoading && <LoadingScreen onFinish={() => setIsLoading(false)} />}
-      <div className="min-h-screen bg-[#fbf8ff] text-[#1a1b25] relative selection:bg-indigo-500/20 selection:text-indigo-600 flex flex-col justify-between">
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 relative selection:bg-indigo-500/20 selection:text-indigo-600 flex flex-col justify-between">
 
-      {/* Ambient background gradients from Stitch design */}
+      {/* Subtle ambient light */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-32 left-1/4 w-[320px] md:w-[600px] h-[320px] md:h-[600px] rounded-full bg-indigo-200/35 blur-3xl opacity-70"></div>
-        <div className="absolute top-1/3 -right-24 w-[280px] md:w-[500px] h-[280px] md:h-[500px] rounded-full bg-violet-200/30 blur-3xl opacity-60"></div>
-        <div className="absolute bottom-10 left-10 w-[300px] md:w-[550px] h-[300px] md:h-[550px] rounded-full bg-purple-100/40 blur-3xl opacity-50"></div>
+        <div className="absolute -top-40 right-1/4 w-[400px] h-[400px] rounded-full bg-indigo-100/30 blur-3xl"></div>
+        <div className="absolute bottom-20 left-10 w-[350px] h-[350px] rounded-full bg-slate-200/20 blur-3xl"></div>
       </div>
 
       <div>
@@ -182,27 +181,27 @@ function MainApp() {
       {/* Floating Bottom-Right Message Toast Popup */}
       <MessageToastContainer onNavigate={handleNavigate} />
 
-      {/* Campus Protocol Footer */}
-      <footer className="mt-12 border-t border-indigo-100/80 bg-white/40 backdrop-blur-md relative z-10">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-xs">
+      {/* Minimal Footer */}
+      <footer className="mt-16 border-t border-slate-200/80 bg-white relative z-10">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#1a1b25]">ReTrace</span>
+            <span className="font-semibold text-slate-900">ReTrace</span>
             <span>•</span>
-            <span>Official University Campus Recovery Protocol</span>
+            <span>University Campus Recovery Network</span>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-[11px]">
-            <button onClick={() => setCurrentTab('map')} className="hover:text-[#4648d4] transition-colors cursor-pointer">
-              Safe Exchange Zones
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <button onClick={() => setCurrentTab('map')} className="hover:text-indigo-600 transition-colors cursor-pointer">
+              Safe Zones
             </button>
-            <button onClick={() => setCurrentTab('admin')} className="hover:text-[#4648d4] transition-colors cursor-pointer">
-              Cabot Desk Verification
+            <button onClick={() => setCurrentTab('admin')} className="hover:text-indigo-600 transition-colors cursor-pointer">
+              Desk Verification
             </button>
-            <a href="#" className="hover:text-[#4648d4] transition-colors">
-              Privacy & PII Encryption
-            </a>
+            <button onClick={() => setCurrentTab('post')} className="hover:text-indigo-600 transition-colors cursor-pointer">
+              Post Report
+            </button>
           </div>
-          <span className="text-[11px] text-slate-400">
-            © 2026 University Campus Commons. All rights reserved.
+          <span className="text-slate-400">
+            © 2026 Campus Commons
           </span>
         </div>
       </footer>

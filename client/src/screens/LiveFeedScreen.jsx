@@ -252,35 +252,34 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 md:bottom-8 right-4 sm:right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1a1b25] text-white shadow-2xl text-xs font-semibold animate-in fade-in slide-in-from-bottom-5">
-          <span className="material-symbols-outlined text-[#10B981] text-base">check_circle</span>
+        <div className="fixed bottom-20 md:bottom-8 right-4 sm:right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white shadow-xl text-xs font-medium animate-in fade-in slide-in-from-bottom-4">
+          <span className="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      <div className="flex flex-col gap-5 md:gap-6">
+      <div className="flex flex-col gap-6">
         
-        {/* Responsive Category Stories Rail */}
+        {/* Minimal Category Pills Rail */}
         <section className="w-full relative">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-[#1a1b25]">Categories</h2>
-              <span className="text-[11px] font-semibold text-[#4648d4] bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/60">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Categories</h2>
+              <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                 {selectedTypeFilter === 'lost'
-                  ? `${stats.lost ?? 0} active lost reports`
+                  ? `${stats.lost ?? 0} lost`
                   : selectedTypeFilter === 'found'
-                  ? `${stats.found ?? 0} safeguarded found items`
+                  ? `${stats.found ?? 0} found`
                   : selectedTypeFilter === 'returned'
-                  ? `${stats.returned ?? 0} reunited items`
+                  ? `${stats.returned ?? 0} reunited`
                   : selectedTypeFilter === 'saved'
-                  ? `${bookmarkedIds.size} saved listings`
-                  : `${stats.total ?? items.length ?? 0} campus items`}
+                  ? `${bookmarkedIds.size} saved`
+                  : `${stats.total ?? items.length ?? 0} items`}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1 px-0.5">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
             {BASE_CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.id;
               const count = getCategoryBadgeCount(cat.id);
@@ -289,30 +288,22 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className="group flex flex-col items-center gap-1.5 shrink-0 focus:outline-none tap-highlight-transparent cursor-pointer"
-                >
-                  <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-[2px] transition-all group-hover:scale-105 ${
+                  className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium shrink-0 transition-all cursor-pointer border ${
                     isActive
-                      ? 'bg-gradient-to-tr from-[#4648d4] via-[#8455ef] to-pink-500 shadow-md shadow-indigo-500/25'
-                      : 'bg-slate-200 group-hover:bg-gradient-to-tr group-hover:from-indigo-400 group-hover:to-violet-400'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <span className={`material-symbols-outlined text-base ${
+                    isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
                   }`}>
-                    <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center">
-                      <span className={`material-symbols-outlined text-xl sm:text-2xl transition-colors ${
-                        isActive ? 'text-[#4648d4]' : 'text-[#464554] group-hover:text-[#4648d4]'
-                      }`}>
-                        {cat.icon}
-                      </span>
-                    </div>
-                    <span className={`absolute -bottom-1 -right-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full shadow-xs ${
-                      isActive ? 'bg-[#4648d4] text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'
-                    }`}>
-                      {count}
-                    </span>
-                  </div>
-                  <span className={`text-xs tracking-tight ${
-                    isActive ? 'font-bold text-[#4648d4]' : 'font-medium text-[#464554]'
+                    {cat.icon}
+                  </span>
+                  <span>{cat.label}</span>
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
                   }`}>
-                    {cat.label}
+                    {count}
                   </span>
                 </button>
               );
@@ -320,15 +311,15 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
           </div>
         </section>
 
-        {/* Fluid Filter Toolbar */}
-        <div className="glass-panel p-2 rounded-2xl flex items-center justify-between gap-2 overflow-x-auto no-scrollbar border-indigo-100/70">
-          <div className="flex items-center gap-1.5 shrink-0">
+        {/* Minimal Filter Toolbar */}
+        <div className="bg-white p-1.5 rounded-2xl flex items-center justify-between gap-2 overflow-x-auto no-scrollbar border border-slate-200">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => setSelectedTypeFilter('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                 selectedTypeFilter === 'all'
-                  ? 'btn-gradient-indigo text-white shadow-xs'
-                  : 'bg-white/80 hover:bg-white text-[#464554] border border-indigo-100'
+                  ? 'bg-slate-100 text-slate-900 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               All Items
@@ -336,46 +327,46 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
 
             <button
               onClick={() => setSelectedTypeFilter('lost')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 selectedTypeFilter === 'lost'
-                  ? 'bg-[#F43F5E] text-white font-bold shadow-xs'
-                  : 'bg-white/80 hover:bg-white text-[#464554] border border-indigo-100'
+                  ? 'bg-rose-50 text-rose-700 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${selectedTypeFilter === 'lost' ? 'bg-white' : 'bg-[#F43F5E]'}`}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               <span>Lost Reports</span>
             </button>
 
             <button
               onClick={() => setSelectedTypeFilter('found')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 selectedTypeFilter === 'found'
-                  ? 'bg-emerald-600 text-white font-bold shadow-xs'
-                  : 'bg-white/80 hover:bg-white text-[#464554] border border-indigo-100'
+                  ? 'bg-emerald-50 text-emerald-700 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${selectedTypeFilter === 'found' ? 'bg-white' : 'bg-emerald-500'}`}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span>Found Safeguarded</span>
             </button>
 
             <button
               onClick={() => setSelectedTypeFilter('returned')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 selectedTypeFilter === 'returned'
-                  ? 'bg-violet-600 text-white font-bold shadow-xs'
-                  : 'bg-white/80 hover:bg-white text-[#464554] border border-indigo-100'
+                  ? 'bg-purple-50 text-purple-700 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${selectedTypeFilter === 'returned' ? 'bg-white' : 'bg-violet-500'}`}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
               <span>Reunited</span>
             </button>
 
             <button
               onClick={() => setSelectedTypeFilter('saved')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 selectedTypeFilter === 'saved'
-                  ? 'bg-indigo-700 text-white font-bold shadow-xs'
-                  : 'bg-white/80 hover:bg-white text-[#464554] border border-indigo-100'
+                  ? 'bg-indigo-50 text-indigo-700 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <span className="material-symbols-outlined text-xs">bookmark</span>
@@ -383,29 +374,29 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
             </button>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 pr-2">
             <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-              Showing {items.length} matches
+              {items.length} {items.length === 1 ? 'item' : 'items'}
             </span>
           </div>
         </div>
 
-        {/* Main Responsive Grid: 8 cols Feed + 4 cols Desktop Sidebar */}
+        {/* Main Grid: 8 cols Feed + 4 cols Desktop Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Feed Column */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="lg:col-span-8 flex flex-col gap-4">
             
             {loading ? (
-              <div className="glass-card rounded-2xl p-12 text-center flex flex-col items-center justify-center">
-                <span className="material-symbols-outlined text-3xl text-[#4648d4] animate-spin mb-2">sync</span>
-                <p className="text-xs font-semibold text-slate-500">Scanning campus geofenced radar...</p>
+              <div className="bg-white rounded-2xl p-12 text-center flex flex-col items-center justify-center border border-slate-200">
+                <span className="material-symbols-outlined text-3xl text-indigo-600 animate-spin mb-2">sync</span>
+                <p className="text-xs font-medium text-slate-500">Loading campus listings...</p>
               </div>
             ) : items.length === 0 ? (
-              <div className="glass-card rounded-2xl p-12 text-center">
+              <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
                 <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">search_off</span>
-                <h3 className="text-sm font-bold text-[#1a1b25]">No items match this filter</h3>
-                <p className="text-xs text-slate-500 mt-1">Try selecting "All Items" or reset your search query.</p>
+                <h3 className="text-sm font-semibold text-slate-900">No items match this filter</h3>
+                <p className="text-xs text-slate-500 mt-1">Try selecting "All Items" or resetting your search.</p>
               </div>
             ) : (
               items.map((item) => {
@@ -416,89 +407,82 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                 return (
                   <article
                     key={item.id}
-                    className={`glass-card glass-card-hover rounded-2xl sm:rounded-3xl overflow-hidden transition-all ${
-                      item.is_urgent ? 'border-rose-200/80 shadow-rose-500/5' : 'border-indigo-100/70'
-                    }`}
+                    className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-slate-300 transition-all shadow-2xs"
                   >
                     {/* Card Header */}
-                    <div className="p-3.5 sm:p-4 flex items-center justify-between">
+                    <div className="p-4 flex items-center justify-between border-b border-slate-100">
                       <div className="flex items-center gap-2.5">
-                        <div className="relative">
-                          <img
-                            src={item.reporter_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}
-                            alt={item.reporter_name}
-                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-1 ring-indigo-200"
-                          />
-                          <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white flex items-center justify-center text-white">
-                            <span className="material-symbols-outlined text-[9px] font-black">check</span>
-                          </span>
-                        </div>
+                        <img
+                          src={item.reporter_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}
+                          alt={item.reporter_name}
+                          className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200"
+                        />
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h3 className="text-xs sm:text-sm font-bold text-[#1a1b25] leading-tight">
+                            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 leading-tight">
                               {item.reporter_name}
                             </h3>
-                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-[10px] font-semibold flex items-center gap-0.5">
-                              <span className="material-symbols-outlined text-[10px]">verified</span> Verified .edu
+                            <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">
+                              .edu
                             </span>
                           </div>
-                          <p className="text-[11px] sm:text-xs text-[#464554] flex items-center gap-0.5 mt-0.5">
-                            <span className="material-symbols-outlined text-[#4648d4] text-xs">pin_drop</span>
-                            <span>{item.coarse_location} • {item.floor_room || 'General Zone'}</span>
+                          <p className="text-[11px] text-slate-500 flex items-center gap-0.5 mt-0.5">
+                            <span className="material-symbols-outlined text-slate-400 text-xs">location_on</span>
+                            <span>{item.coarse_location} • {item.floor_room || 'Campus Area'}</span>
                           </p>
                         </div>
                       </div>
 
-                      <span className="text-[11px] text-slate-400 font-medium">
-                        {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {isReturned ? (
+                          <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-semibold">
+                            Reunited
+                          </span>
+                        ) : isFound ? (
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+                            Found
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[11px] font-semibold">
+                            Lost
+                          </span>
+                        )}
+                        <span className="text-[11px] text-slate-400">
+                          {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Card Media Stage */}
                     {item.photos && item.photos.length > 0 && (
                       <div 
                         onClick={() => onSelectItem(item)}
-                        className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-indigo-50/50 overflow-hidden cursor-pointer group"
+                        className="relative aspect-[16/9] w-full bg-slate-50 overflow-hidden cursor-pointer group"
                       >
                         <img
                           src={item.photos[0]}
                           alt={item.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
                         />
 
-                        {/* Floating Badges */}
+                        {/* Minimal Badges */}
                         <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
-                          {isReturned ? (
-                            <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold shadow-sm flex items-center gap-1">
-                              <span className="material-symbols-outlined text-xs">verified</span> REUNITED
-                            </span>
-                          ) : isFound ? (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/95 backdrop-blur-md text-white text-xs font-bold shadow-sm flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> FOUND
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-full bg-[#F43F5E] text-white text-xs font-bold shadow-sm flex items-center gap-1">
-                              <span className="material-symbols-outlined text-xs">error</span> LOST • URGENT
-                            </span>
-                          )}
-
                           {item.custody_type === 'official_desk' && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#1a1b25]/75 backdrop-blur-md text-white text-[11px] font-medium border border-white/10">
-                              Front Desk Safe
+                            <span className="px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-medium">
+                              Desk Safekeeping
                             </span>
                           )}
-
                           {item.reward_offered && (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-sm flex items-center gap-1">
-                              <span className="material-symbols-outlined text-xs">savings</span> {item.reward_offered}
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-semibold shadow-xs">
+                              {item.reward_offered}
                             </span>
                           )}
                         </div>
 
                         {item.photos.length > 1 && (
                           <div className="absolute bottom-3 right-3">
-                            <span className="px-2 py-0.5 rounded-full bg-[#1a1b25]/75 backdrop-blur-md text-white text-[11px] font-medium flex items-center gap-1 border border-white/10">
-                              <span className="material-symbols-outlined text-xs">photo_camera</span> {item.photos.length} photos
+                            <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-medium flex items-center gap-1">
+                              <span className="material-symbols-outlined text-xs">photo_camera</span> {item.photos.length}
                             </span>
                           </div>
                         )}
@@ -506,48 +490,48 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                     )}
 
                     {/* Card Body & Details */}
-                    <div className="p-4 sm:p-5 flex flex-col gap-3">
+                    <div className="p-4 flex flex-col gap-3">
                       <div>
                         <h4 
                           onClick={() => onSelectItem(item)}
-                          className="text-sm sm:text-base font-bold text-[#1a1b25] tracking-tight hover:text-[#4648d4] cursor-pointer transition-colors"
+                          className="text-sm sm:text-base font-bold text-slate-900 tracking-tight hover:text-indigo-600 cursor-pointer transition-colors"
                         >
                           {item.title}
                         </h4>
-                        <p className="text-xs sm:text-sm text-[#464554] mt-1 leading-relaxed line-clamp-2">
+                        <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed line-clamp-2">
                           {item.description}
                         </p>
                       </div>
 
                       {/* Chips */}
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-medium">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
                           #{item.category}
                         </span>
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-medium">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
                           #{item.coarse_location.replace(/\s+/g, '')}
                         </span>
 
                         {isFound && item.has_challenge && (
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200/50 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-xs">lock</span> Ownership Challenge Active
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">lock</span> Verification Challenge
                           </span>
                         )}
                       </div>
 
-                      {/* Fluid Action Bar */}
-                      <div className="pt-2 border-t border-indigo-100/60 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-0.5">
+                      {/* Action Bar */}
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1">
                           <button
                             onClick={(e) => handleToggleBookmark(e, item.id)}
                             aria-label="Bookmark"
-                            className={`p-2 rounded-full transition-colors cursor-pointer ${
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               isBookmarked
-                                ? 'text-[#4648d4] bg-indigo-50'
-                                : 'text-slate-500 hover:text-[#4648d4] hover:bg-indigo-50'
+                                ? 'text-indigo-600 bg-indigo-50'
+                                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                             }`}
                           >
-                            <span className="material-symbols-outlined text-lg sm:text-xl">
+                            <span className="material-symbols-outlined text-lg">
                               {isBookmarked ? 'bookmark' : 'bookmark_border'}
                             </span>
                           </button>
@@ -555,15 +539,15 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                             onClick={() => {
                               try {
                                 navigator.clipboard?.writeText(window.location.href);
-                                showToast('Campus alert link copied!');
+                                showToast('Link copied to clipboard!');
                               } catch (e) {
                                 showToast('Link ready to share');
                               }
                             }}
                             aria-label="Share"
-                            className="p-2 rounded-full text-slate-500 hover:text-[#4648d4] hover:bg-indigo-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                           >
-                            <span className="material-symbols-outlined text-lg sm:text-xl">share</span>
+                            <span className="material-symbols-outlined text-lg">share</span>
                           </button>
 
                           {/* Security Administrator or Owner Delete Button */}
@@ -573,11 +557,11 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                                 e.stopPropagation();
                                 setDeleteConfirmItem(item);
                               }}
-                              title={user?.role === 'admin' ? "Delete Post (Security Admin Desk)" : "Delete My Post"}
+                              title={user?.role === 'admin' ? "Delete Post (Security Admin)" : "Delete My Post"}
                               aria-label="Delete Post"
-                              className="p-2 rounded-full text-rose-500 hover:text-white hover:bg-rose-600 transition-all cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             >
-                              <span className="material-symbols-outlined text-lg sm:text-xl">delete</span>
+                              <span className="material-symbols-outlined text-lg">delete</span>
                             </button>
                           )}
                         </div>
@@ -585,18 +569,17 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => onSelectItem(item)}
-                            className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs sm:text-sm font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
                           >
-                            <span className="material-symbols-outlined text-sm sm:text-base">visibility</span>
                             <span>Details</span>
                           </button>
 
                           {isFound && !isReturned && (
                             <button
                               onClick={() => onOpenClaimModal(item)}
-                              className="px-4 py-1.5 sm:px-5 sm:py-2 rounded-full btn-gradient-indigo text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
                             >
-                              <span className="material-symbols-outlined text-sm sm:text-base">verified_user</span>
+                              <span className="material-symbols-outlined text-sm">verified_user</span>
                               <span>Claim</span>
                             </button>
                           )}
@@ -604,9 +587,9 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                           {!isFound && !isReturned && (
                             <button
                               onClick={() => setSightingTargetItem(item)}
-                              className="px-4 py-1.5 sm:px-5 sm:py-2 rounded-full bg-[#F43F5E] hover:bg-rose-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
                             >
-                              <span className="material-symbols-outlined text-sm sm:text-base">visibility</span>
+                              <span className="material-symbols-outlined text-sm">visibility</span>
                               <span>I've Seen This</span>
                             </button>
                           )}
@@ -619,34 +602,31 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
             )}
 
             {/* Reunited Showcase Card */}
-            <article className="glass-card rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 border-violet-200/50 hover:border-violet-300/80 transition-all">
-              <div className="relative w-full sm:w-28 h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+            <article className="bg-white rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 border border-slate-200">
+              <div className="relative w-full sm:w-24 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100">
                 <img
                   alt="Sony Headphones"
                   className="w-full h-full object-cover"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8Wswf5Q5_OaleRZkuD_pIfe3AoMlXtOICoGZ4io8GRDJ3J8af98eLn6Cfq0fm1kbg0Tg2THj2KrTrd7tQpEY7yw8cn9kOpaiG4FAdukk83RztCIG8hV9M_inVAoKSdOcFQNNB-FXJ5kt3HvbuONs4E842g3d8CibCj0nPx4QPD_88lfAhpACtmq0KE5qLmHGyLRk38YAO9o2nnCBq8gIINRn-Fr9G2G2iyfnSwmkk4SIb-CqbjTzZNQ"
                 />
-                <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[9px] font-bold">
-                  REUNITED
-                </span>
               </div>
               <div className="flex-1 w-full">
                 <div className="flex items-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-0.5">
-                    <span className="material-symbols-outlined text-xs">verified</span> Handover Verified
+                  <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-semibold">
+                    Reunited
                   </span>
                   <span className="text-[11px] text-slate-400">Yesterday at Cabot Desk</span>
                 </div>
-                <h4 className="text-xs sm:text-sm font-bold text-[#1a1b25] mt-1">
-                  Sony WH-1000XM5 Headphones Reunited!
+                <h4 className="text-xs sm:text-sm font-semibold text-slate-900 mt-1">
+                  Sony WH-1000XM5 Headphones Reunited
                 </h4>
-                <p className="text-xs text-[#464554] line-clamp-1">
-                  Matched via Bluetooth MAC address and safely returned to verified owner.
+                <p className="text-xs text-slate-500 line-clamp-1">
+                  Safely returned to verified owner via desk custody lockbox.
                 </p>
               </div>
               <button 
                 onClick={() => handleOpenCustodyLog('REC-8846', 'Sony WH-1000XM5 Headphones')}
-                className="w-full sm:w-auto shrink-0 px-3.5 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-semibold transition-all cursor-pointer"
+                className="w-full sm:w-auto shrink-0 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
               >
                 View Log
               </button>
@@ -654,133 +634,105 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
 
           </div>
 
-          {/* Minimalist Liquid Glass Sidebar */}
-          <aside className="lg:col-span-4 flex flex-col gap-5 w-full">
+          {/* Minimal Sidebar */}
+          <aside className="lg:col-span-4 flex flex-col gap-4 w-full">
             
             {/* Quick Report Banner */}
-            <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-[#4648d4] via-indigo-700 to-[#6b38d4] text-white shadow-xl shadow-indigo-500/20 border border-indigo-400/30">
-              <div className="relative z-10">
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[11px] font-semibold mb-2">
-                  Zero-Hassle Campus Return
-                </span>
-                <h3 className="text-base sm:text-lg font-bold tracking-tight leading-snug">
-                  Found an abandoned item?
-                </h3>
-                <p className="text-xs text-indigo-100 mt-1 leading-relaxed">
-                  Snap a quick photo, drop a pin, and our automated campus matcher alerts rightful owners immediately.
-                </p>
-                <button
-                  onClick={onOpenPostModal}
-                  className="mt-4 w-full py-2.5 px-4 rounded-xl bg-white hover:bg-indigo-50 text-[#4648d4] font-bold text-xs tracking-wide shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-base">add_a_photo</span>
-                  <span>Publish Quick Report</span>
-                </button>
-              </div>
-              <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+            <div className="rounded-2xl p-5 bg-slate-900 text-white shadow-sm border border-slate-800">
+              <span className="text-[11px] font-medium text-indigo-400 uppercase tracking-wider block mb-1">
+                Found or Lost Something?
+              </span>
+              <h3 className="text-base font-bold tracking-tight">
+                Report a Campus Item
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                Post in seconds to alert students and campus security desks.
+              </p>
+              <button
+                onClick={onOpenPostModal}
+                className="mt-4 w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                <span>Post Lost or Found</span>
+              </button>
             </div>
 
             {/* Safe Exchange Zones Card */}
-            <div className="glass-card rounded-2xl p-4 sm:p-5 flex flex-col gap-3 border-indigo-100/60">
+            <div className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3 border border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[#4648d4] text-lg">shield</span>
-                  <h3 className="text-xs sm:text-sm font-bold text-[#1a1b25]">Safe Exchange Zones</h3>
+                  <span className="material-symbols-outlined text-slate-700 text-lg">shield</span>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-900">Safe Exchange Zones</h3>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[10px] font-bold">
-                  24/7 CCTV
+                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">
+                  Monitored
                 </span>
               </div>
-              <p className="text-xs text-[#464554] leading-relaxed">
-                Campus checkpoints with duty officers recommended for contactless recovery handovers.
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Campus checkpoints with official staff recommended for safe item handovers.
               </p>
 
-              <div className="flex flex-col gap-2 pt-1">
+              <div className="flex flex-col gap-1.5 pt-1">
                 <div 
                   onClick={() => onNavigateTab ? onNavigateTab('map') : null}
-                  className="p-2.5 rounded-xl bg-indigo-50/40 hover:bg-indigo-50/80 border border-indigo-100/70 flex items-center justify-between transition-colors cursor-pointer"
+                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 flex items-center justify-between transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                     <div className="truncate">
-                      <p className="text-xs font-bold text-[#1a1b25] truncate">Campus Police Annex</p>
+                      <p className="text-xs font-semibold text-slate-900 truncate">Campus Police Annex</p>
                       <span className="text-[10px] text-slate-400">Main Gate • 24/7 Monitored</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold text-[#4648d4]">Zone A</span>
+                  <span className="text-[11px] font-medium text-slate-500">Zone A</span>
                 </div>
 
                 <div 
                   onClick={() => onNavigateTab ? onNavigateTab('map') : null}
-                  className="p-2.5 rounded-xl bg-indigo-50/40 hover:bg-indigo-50/80 border border-indigo-100/70 flex items-center justify-between transition-colors cursor-pointer"
+                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 flex items-center justify-between transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                     <div className="truncate">
-                      <p className="text-xs font-bold text-[#1a1b25] truncate">Cabot Circulation Desk</p>
+                      <p className="text-xs font-semibold text-slate-900 truncate">Cabot Circulation Desk</p>
                       <span className="text-[10px] text-slate-400">Central Atrium • Until 11 PM</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold text-[#4648d4]">Zone B</span>
+                  <span className="text-[11px] font-medium text-slate-500">Zone B</span>
                 </div>
 
                 <div 
                   onClick={() => onNavigateTab ? onNavigateTab('map') : null}
-                  className="p-2.5 rounded-xl bg-indigo-50/40 hover:bg-indigo-50/80 border border-indigo-100/70 flex items-center justify-between transition-colors cursor-pointer"
+                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 flex items-center justify-between transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                     <div className="truncate">
-                      <p className="text-xs font-bold text-[#1a1b25] truncate">Student Union Info Hub</p>
+                      <p className="text-xs font-semibold text-slate-900 truncate">Student Union Info Hub</p>
                       <span className="text-[10px] text-slate-400">Lounge 2 • 8 AM – 10 PM</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold text-[#4648d4]">Zone C</span>
+                  <span className="text-[11px] font-medium text-slate-500">Zone C</span>
                 </div>
               </div>
             </div>
 
             {/* Trust Score Card */}
-            <div className="glass-card rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 border-indigo-100/60">
-              <div className="flex items-center gap-3.5">
-                <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-indigo-100"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                    />
-                    <path
-                      className="text-[#4648d4]"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeDasharray={`${user?.trust_score || 98}, 100`}
-                      strokeLinecap="round"
-                      strokeWidth="3.5"
-                    />
-                  </svg>
-                  <span className="absolute font-bold text-xs text-[#1a1b25]">
+            <div className="bg-white rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 border border-slate-200">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold text-slate-900">Your Trust Score</h4>
+                  <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded">
                     {user?.trust_score || 98}%
                   </span>
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-[#1a1b25]">Your Campus Trust Score</h4>
-                    <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-bold rounded">
-                      Level 3
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#464554] mt-0.5">
-                    {user?.returns_count || 14} items returned with verified classmate ratings.
-                  </p>
-                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {user?.returns_count || 14} verified handovers completed.
+                </p>
               </div>
               <button 
                 onClick={() => setShowPerksModal(true)}
-                className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-[11px] font-semibold text-indigo-900 shrink-0 cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-800 shrink-0 cursor-pointer"
               >
                 Perks
               </button>

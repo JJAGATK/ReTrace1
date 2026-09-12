@@ -122,21 +122,21 @@ export default function LoginModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#1a1b25]/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-indigo-200/80 flex flex-col gap-4 text-[#1a1b25]">
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-xl border border-slate-200 flex flex-col gap-4 text-slate-900">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
             <Logo size="xs" showText={false} />
             <div>
-              <h3 className="font-bold text-base text-[#1a1b25]">Switch or Log In Account</h3>
-              <p className="text-[11px] text-slate-400">ReTrace Campus Network</p>
+              <h3 className="font-bold text-sm text-slate-900">Switch Account</h3>
+              <p className="text-[11px] text-slate-500">ReTrace Campus Network</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-lg">close</span>
           </button>
@@ -145,20 +145,20 @@ export default function LoginModal({ isOpen, onClose }) {
         {mode === 'accounts' ? (
           <div className="flex flex-col gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#1a1b25] mb-2">
-                Choose Account from Dropdown:
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Select Account:
               </label>
               <div className="relative">
                 <select
                   value={selectedAccountId}
                   onChange={(e) => setSelectedAccountId(e.target.value)}
-                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-indigo-50/70 border-2 border-indigo-200/80 text-xs font-bold text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4] cursor-pointer appearance-none"
+                  className="w-full pl-3 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer appearance-none transition-colors"
                 >
                   <option value="user-maya">Maya Lin — Student (Finder)</option>
                   <option value="user-julian">Julian Vance — Student (Claimant)</option>
-                  <option value="user-admin">Officer Marcus Vance — Security Administrator Desk</option>
+                  <option value="user-admin">Officer Marcus Vance — Security Desk Admin</option>
                 </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none text-lg">
+                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base">
                   expand_more
                 </span>
               </div>
@@ -171,15 +171,15 @@ export default function LoginModal({ isOpen, onClose }) {
                   key={acc.id}
                   type="button"
                   onClick={() => handleQuickLogin(acc.id)}
-                  className={`p-2 rounded-xl flex flex-col items-center text-center transition-all cursor-pointer border ${
+                  className={`p-2 rounded-xl flex flex-col items-center text-center transition-colors cursor-pointer border ${
                     selectedAccountId === acc.id
-                      ? 'bg-indigo-100 border-[#4648d4] font-bold'
-                      : 'bg-white hover:bg-indigo-50/50 border-indigo-100 text-slate-600'
+                      ? 'bg-slate-900 text-white border-slate-900 font-semibold'
+                      : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                   }`}
                 >
-                  <img src={acc.avatar} alt="" className="w-7 h-7 rounded-full object-cover mb-1 ring-1 ring-indigo-200" />
-                  <span className="text-[11px] font-bold text-[#1a1b25] truncate w-full">{acc.name.split(' ')[0]}</span>
-                  <span className="text-[9px] text-slate-400 truncate w-full">{acc.role === 'admin' ? 'Security' : 'Student'}</span>
+                  <img src={acc.avatar} alt="" className="w-7 h-7 rounded-full object-cover mb-1 ring-1 ring-slate-200" />
+                  <span className={`text-[11px] truncate w-full ${selectedAccountId === acc.id ? 'text-white font-semibold' : 'text-slate-900'}`}>{acc.name.split(' ')[0]}</span>
+                  <span className={`text-[9px] truncate w-full ${selectedAccountId === acc.id ? 'text-slate-300' : 'text-slate-400'}`}>{acc.role === 'admin' ? 'Desk' : 'Student'}</span>
                 </button>
               ))}
             </div>
@@ -188,18 +188,18 @@ export default function LoginModal({ isOpen, onClose }) {
               type="button"
               disabled={loading}
               onClick={handleSelectLogin}
-              className="w-full py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              {loading ? 'Switching...' : 'Switch to Selected Account'}
+              {loading ? 'Switching...' : 'Switch Account'}
             </button>
 
-            <div className="pt-2 border-t border-indigo-100 text-center">
+            <div className="pt-2 border-t border-slate-100 text-center">
               <button
                 type="button"
                 onClick={() => setMode('edu')}
-                className="text-xs text-[#4648d4] font-semibold hover:underline cursor-pointer"
+                className="text-xs text-indigo-600 font-medium hover:underline cursor-pointer"
               >
-                Or sign in with .edu OTP
+                Sign in with .edu email OTP
               </button>
             </div>
           </div>
@@ -224,8 +224,8 @@ export default function LoginModal({ isOpen, onClose }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student.id@harvard.edu"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                    placeholder="student@harvard.edu"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 text-xs text-slate-900 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
 
@@ -238,23 +238,23 @@ export default function LoginModal({ isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {loading ? 'Sending Code...' : 'Send 6-Digit Campus OTP'}
+                  {loading ? 'Sending...' : 'Send Verification Code'}
                 </button>
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="flex flex-col gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-[#1a1b25]">Enter 6-Digit OTP Code</label>
+                    <label className="text-xs font-semibold text-slate-700">Enter 6-Digit Code</label>
                     {demoCode && (
                       <button
                         type="button"
                         onClick={() => setOtpCode(demoCode)}
-                        className="text-[10px] text-[#4648d4] font-bold underline cursor-pointer"
+                        className="text-[10px] text-indigo-600 font-bold underline cursor-pointer"
                       >
-                        Demo Code: {demoCode}
+                        Demo: {demoCode}
                       </button>
                     )}
                   </div>
@@ -265,7 +265,7 @@ export default function LoginModal({ isOpen, onClose }) {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
                     placeholder="441920"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 text-center tracking-widest text-base font-mono text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 text-center tracking-widest text-base font-mono text-slate-900 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
 
@@ -278,7 +278,7 @@ export default function LoginModal({ isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {loading ? 'Verifying...' : 'Authenticate'}
                 </button>

@@ -139,21 +139,21 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
   const pendingFlags = flags.filter(f => f.status === 'pending');
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-24">
       
       {/* Admin Title & Role Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-lg bg-purple-100 text-purple-700 font-bold text-xs">
-              Desk Monitor Console
+            <span className="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 font-semibold text-xs">
+              Security Administrator
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
-              ReTrace Campus Security & Verification Center
+            <h1 className="text-xl font-bold text-slate-900">
+              Campus Security & Verification Center
             </h1>
           </div>
-          <p className="text-xs text-[#464554] mt-0.5">
-            Review ownership verification challenges, resolve community reports, and audit immutable chain-of-custody logs.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Review ownership verification challenges, resolve community reports, and audit custody logs.
           </p>
         </div>
 
@@ -161,7 +161,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportAudit}
-            className="px-3.5 py-1.5 rounded-full bg-white hover:bg-indigo-50 border border-indigo-200/80 text-xs font-semibold text-[#4648d4] shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <span className="material-symbols-outlined text-sm">download</span>
             <span>Export Audit Log</span>
@@ -170,7 +170,7 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
       </div>
 
       {feedback && (
-        <div className="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
+        <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
           <span className="material-symbols-outlined text-sm">check_circle</span>
           <span>{feedback}</span>
         </div>
@@ -178,44 +178,44 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
 
       {/* Metrics Row */}
       {analytics && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="glass-card rounded-2xl p-4 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-slate-400">Active Campus Items</span>
-            <div className="text-2xl font-black text-[#1a1b25] mt-1">{analytics.activeItems ?? (analytics.totalItems - (analytics.returnedItems || 0))}</div>
-            <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">{analytics.totalItems} total registered</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+            <span className="text-[11px] font-medium text-slate-500">Active Campus Items</span>
+            <div className="text-2xl font-bold text-slate-900 mt-1">{analytics.activeItems ?? (analytics.totalItems - (analytics.returnedItems || 0))}</div>
+            <div className="text-[10px] text-emerald-600 font-medium mt-0.5">{analytics.totalItems} registered</div>
           </div>
 
-          <div className="glass-card rounded-2xl p-4 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-slate-400">Recovery Rate</span>
-            <div className="text-2xl font-black text-[#4648d4] mt-1">{analytics.recoveryRate}%</div>
-            <div className="text-[10px] text-slate-500 font-semibold mt-0.5">{analytics.returnedItems} items returned safely</div>
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+            <span className="text-[11px] font-medium text-slate-500">Recovery Rate</span>
+            <div className="text-2xl font-bold text-indigo-600 mt-1">{analytics.recoveryRate}%</div>
+            <div className="text-[10px] text-slate-500 font-medium mt-0.5">{analytics.returnedItems} returns</div>
           </div>
 
-          <div className="glass-card rounded-2xl p-4 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-slate-400">Pending Review</span>
-            <div className="text-2xl font-black text-[#6b38d4] mt-1">{claims.filter(c => c.status === 'admin_review' || c.status === 'submitted').length}</div>
-            <div className="text-[10px] text-purple-600 font-semibold mt-0.5">Ownership challenges</div>
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+            <span className="text-[11px] font-medium text-slate-500">Pending Review</span>
+            <div className="text-2xl font-bold text-purple-600 mt-1">{claims.filter(c => c.status === 'admin_review' || c.status === 'submitted').length}</div>
+            <div className="text-[10px] text-purple-600 font-medium mt-0.5">Challenges</div>
           </div>
 
-          <div className="glass-card rounded-2xl p-4 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-slate-400">Flagged Reports</span>
-            <div className="text-2xl font-black text-[#F43F5E] mt-1">{pendingFlags.length}</div>
-            <div className="text-[10px] text-rose-500 font-semibold mt-0.5">Awaiting moderation</div>
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+            <span className="text-[11px] font-medium text-slate-500">Flagged Reports</span>
+            <div className="text-2xl font-bold text-rose-600 mt-1">{pendingFlags.length}</div>
+            <div className="text-[10px] text-rose-500 font-medium mt-0.5">Awaiting review</div>
           </div>
         </div>
       )}
 
       {/* Sub-Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-indigo-100 mb-6 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-200 mb-5 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('queue')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeSubTab === 'queue' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeSubTab === 'queue' ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>Claims Review Queue</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-            activeSubTab === 'queue' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-800'
+          <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+            activeSubTab === 'queue' ? 'bg-indigo-200/70 text-indigo-800' : 'bg-slate-200 text-slate-700'
           }`}>
             {claims.filter(c => c.status === 'admin_review' || c.status === 'submitted').length}
           </span>
@@ -223,13 +223,13 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
 
         <button
           onClick={() => setActiveSubTab('flags')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeSubTab === 'flags' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeSubTab === 'flags' ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <span>Flagged Listings</span>
           {pendingFlags.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[10px] font-bold">
               {pendingFlags.length}
             </span>
           )}
@@ -237,21 +237,21 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
 
         <button
           onClick={() => setActiveSubTab('audit')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeSubTab === 'audit' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeSubTab === 'audit' ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <span>Chain-of-Custody Audit Log</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Custody Audit Trail</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
         </button>
 
         <button
           onClick={() => setActiveSubTab('analytics')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'analytics' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'analytics' ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 shadow-xs' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Campus Loss Hotspots
+          Loss Hotspots
         </button>
       </div>
 
@@ -270,153 +270,153 @@ export default function AdminQueueScreen({ onSelectItem, onHandoverApproved }) {
               const isApproved = claim.status === 'approved';
 
               return (
-                <div
-                  key={claim.id}
-                  className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-lg flex flex-col gap-4"
-                >
-                  {/* Claim Card Top Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-[#4648d4]">
-                        {claim.claimant_name ? claim.claimant_name.charAt(0) : 'U'}
+                  <div
+                    key={claim.id}
+                    className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col gap-4"
+                  >
+                    {/* Claim Card Top Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center font-semibold text-xs text-indigo-700">
+                          {claim.claimant_name ? claim.claimant_name.charAt(0) : 'U'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs sm:text-sm font-semibold text-slate-900">{claim.claimant_name}</h4>
+                            <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded border border-emerald-200">
+                              Verified .edu (Trust {claim.claimant_trust || 98}%)
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400">
+                            {claim.claimant_email} • Claim ID #{claim.id}
+                          </p>
+                        </div>
                       </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <span className="text-xs font-semibold text-indigo-600 block">
+                            Match: {claim.match_score}%
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {claim.match_score >= 80 ? 'High Confidence' : 'Manual Review'}
+                          </span>
+                        </div>
+                        <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold ${
+                          isApproved
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : claim.status === 'rejected'
+                            ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                            : 'bg-purple-50 text-purple-800 border border-purple-200'
+                        }`}>
+                          {claim.status?.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Target Item Brief */}
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-[#1a1b25]">{claim.claimant_name}</h4>
-                          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200">
-                            Verified .edu (Trust {claim.claimant_trust || 98}%)
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-400">
-                          {claim.claimant_email} • Claim ID #{claim.id}
-                        </p>
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block">Target Item</span>
+                        <span className="text-xs font-semibold text-slate-800">{claim.item_title} (#{claim.item_id})</span>
                       </div>
+                      <span className="text-xs text-indigo-600 font-medium">{claim.coarse_location}</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-[#4648d4] block">
-                          Match Score: {claim.match_score}%
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          {claim.match_score >= 80 ? 'High Confidence' : 'Manual Review'}
-                        </span>
+                    {/* Side-by-Side Comparison (Feature 2 Verification) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      
+                      {/* Intake Secrets (Finder) */}
+                      <div className="p-3.5 rounded-xl bg-purple-50/40 border border-purple-100 flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5 text-purple-800 font-semibold text-xs uppercase tracking-wide">
+                          <span className="material-symbols-outlined text-sm">lock</span>
+                          <span>Finder's Intake Secrets (Protected)</span>
+                        </div>
+
+                        {claim.intake_questions && claim.intake_questions.map((q, idx) => (
+                          <div key={idx} className="text-xs">
+                            <span className="text-slate-500 font-medium block">Q{idx + 1}: {q}</span>
+                            <span className="font-semibold text-purple-900 bg-purple-100/70 px-1.5 py-0.5 rounded">
+                              Expected: {claim.expected_answers?.[idx] || 'Confidential Answer'}
+                            </span>
+                          </div>
+                        ))}
+
+                        {claim.expected_serial && (
+                          <div className="text-xs pt-1 border-t border-purple-200/60">
+                            <span className="text-slate-500 font-medium block">Intake Serial Number:</span>
+                            <span className="font-mono font-semibold text-purple-900">{claim.expected_serial}</span>
+                          </div>
+                        )}
                       </div>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        isApproved
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : claim.status === 'rejected'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-purple-100 text-purple-800 animate-pulse'
-                      }`}>
-                        {claim.status?.toUpperCase()}
-                      </span>
+
+                      {/* Claimant Answers */}
+                      <div className="p-3.5 rounded-xl bg-indigo-50/30 border border-indigo-100 flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5 text-indigo-700 font-semibold text-xs uppercase tracking-wide">
+                          <span className="material-symbols-outlined text-sm">fingerprint</span>
+                          <span>Claimant Submitted Answers</span>
+                        </div>
+
+                        {claim.submitted_answers && claim.submitted_answers.map((ans, idx) => (
+                          <div key={idx} className="text-xs">
+                            <span className="text-slate-500 font-medium block">Answer {idx + 1}:</span>
+                            <span className="font-semibold text-slate-800 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                              "{ans || 'No answer provided'}"
+                            </span>
+                          </div>
+                        ))}
+
+                        {claim.serial_provided && (
+                          <div className="text-xs pt-1 border-t border-indigo-200/60">
+                            <span className="text-slate-500 font-medium block">Claimant Serial Provided:</span>
+                            <span className="font-mono font-semibold text-slate-800 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                              {claim.serial_provided}
+                            </span>
+                          </div>
+                        )}
+
+                        {claim.proof_notes && (
+                          <div className="text-xs pt-1">
+                            <span className="text-slate-500 font-medium block">Proof Notes:</span>
+                            <span className="text-slate-700 italic">"{claim.proof_notes}"</span>
+                          </div>
+                        )}
+                      </div>
+
                     </div>
+
+                    {/* Decision Action Bar */}
+                    {isPending && (
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                        <button
+                          onClick={() => handleDecision(claim.id, 'reject')}
+                          disabled={actionLoading === claim.id}
+                          className="px-3.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition-all cursor-pointer"
+                        >
+                          Reject Claim
+                        </button>
+
+                        <button
+                          onClick={() => handleDecision(claim.id, 'approve')}
+                          disabled={actionLoading === claim.id}
+                          className="px-4 py-1.5 rounded-lg btn-gradient-indigo text-white text-xs font-semibold shadow-xs active:scale-[0.99] transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">verified_user</span>
+                          <span>Approve & Schedule Handover</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {isApproved && (
+                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm">check_circle</span>
+                          <span>Approved for pickup at Cabot Circulation Desk. QR token issued.</span>
+                        </div>
+                        <span className="font-mono text-[11px] text-emerald-700">Reviewed by {claim.reviewed_by}</span>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Target Item Brief */}
-                  <div className="p-3 rounded-2xl bg-indigo-50/40 border border-indigo-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Item</span>
-                      <span className="text-xs font-bold text-[#1a1b25]">{claim.item_title} (#{claim.item_id})</span>
-                    </div>
-                    <span className="text-xs text-[#4648d4] font-semibold">{claim.coarse_location}</span>
-                  </div>
-
-                  {/* Side-by-Side Comparison (Feature 2 Verification) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* Intake Secrets (Finder) */}
-                    <div className="p-4 rounded-2xl bg-purple-50/50 border border-purple-200/70 flex flex-col gap-2">
-                      <div className="flex items-center gap-1.5 text-[#6b38d4] font-bold text-xs uppercase tracking-wide">
-                        <span className="material-symbols-outlined text-sm">lock</span>
-                        <span>Finder's Intake Secrets (Protected)</span>
-                      </div>
-
-                      {claim.intake_questions && claim.intake_questions.map((q, idx) => (
-                        <div key={idx} className="text-xs">
-                          <span className="text-slate-500 font-medium block">Q{idx + 1}: {q}</span>
-                          <span className="font-bold text-purple-900 bg-purple-100/70 px-1.5 py-0.5 rounded">
-                            Expected: {claim.expected_answers?.[idx] || 'Confidential Answer'}
-                          </span>
-                        </div>
-                      ))}
-
-                      {claim.expected_serial && (
-                        <div className="text-xs pt-1 border-t border-purple-200/60">
-                          <span className="text-slate-500 font-medium block">Intake Serial Number:</span>
-                          <span className="font-mono font-bold text-purple-900">{claim.expected_serial}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Claimant Answers */}
-                    <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200/70 flex flex-col gap-2">
-                      <div className="flex items-center gap-1.5 text-[#4648d4] font-bold text-xs uppercase tracking-wide">
-                        <span className="material-symbols-outlined text-sm">fingerprint</span>
-                        <span>Claimant Submitted Answers</span>
-                      </div>
-
-                      {claim.submitted_answers && claim.submitted_answers.map((ans, idx) => (
-                        <div key={idx} className="text-xs">
-                          <span className="text-slate-500 font-medium block">Answer {idx + 1}:</span>
-                          <span className="font-bold text-[#1a1b25] bg-white px-1.5 py-0.5 rounded border border-indigo-100">
-                            "{ans || 'No answer provided'}"
-                          </span>
-                        </div>
-                      ))}
-
-                      {claim.serial_provided && (
-                        <div className="text-xs pt-1 border-t border-indigo-200/60">
-                          <span className="text-slate-500 font-medium block">Claimant Serial Provided:</span>
-                          <span className="font-mono font-bold text-[#1a1b25] bg-white px-1.5 py-0.5 rounded border border-indigo-100">
-                            {claim.serial_provided}
-                          </span>
-                        </div>
-                      )}
-
-                      {claim.proof_notes && (
-                        <div className="text-xs pt-1">
-                          <span className="text-slate-500 font-medium block">Proof Notes:</span>
-                          <span className="text-slate-700 italic">"{claim.proof_notes}"</span>
-                        </div>
-                      )}
-                    </div>
-
-                  </div>
-
-                  {/* Decision Action Bar */}
-                  {isPending && (
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-indigo-100">
-                      <button
-                        onClick={() => handleDecision(claim.id, 'reject')}
-                        disabled={actionLoading === claim.id}
-                        className="px-4 py-2 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all cursor-pointer"
-                      >
-                        Reject Claim
-                      </button>
-
-                      <button
-                        onClick={() => handleDecision(claim.id, 'approve')}
-                        disabled={actionLoading === claim.id}
-                        className="px-5 py-2 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span className="material-symbols-outlined text-sm">verified_user</span>
-                        <span>Approve & Schedule Handover</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {isApproved && (
-                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-sm">check_circle</span>
-                        <span>Approved for safe pickup at Cabot Circulation Desk. QR token issued.</span>
-                      </div>
-                      <span className="font-mono text-[11px] text-emerald-700">Reviewed by {claim.reviewed_by}</span>
-                    </div>
-                  )}
-                </div>
               );
             })
           )}

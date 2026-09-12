@@ -279,37 +279,37 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
   }, []);
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+    <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-24">
       
       {/* Top Header & Overview Stats */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25] flex items-center gap-2">
-              Campus Operations & Safety Radar
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              Campus Radar & Safe Zones
             </h1>
           </div>
-          <p className="text-xs text-[#464554] mt-0.5">
-            Live monitoring across 10 official Harvard Quad checkpoints, designated safe vaults, and item intake counters.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time monitoring across 10 campus checkpoints, safe vault locations, and intake desks.
           </p>
         </div>
 
         {/* Filter Toolbar */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center p-1 rounded-full glass-panel border border-indigo-100/90 shadow-xs text-xs font-semibold">
+          <div className="flex items-center p-1 rounded-lg bg-slate-100/90 border border-slate-200/80 text-xs font-medium">
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                filterMode === 'all' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                filterMode === 'all' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               All Locations ({CAMPUS_ZONES.length})
             </button>
             <button
               onClick={() => setFilterMode('safe')}
-              className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 cursor-pointer ${
-                filterMode === 'safe' ? 'bg-emerald-600 text-white shadow-xs' : 'text-[#464554] hover:bg-emerald-50'
+              className={`px-3 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                filterMode === 'safe' ? 'bg-emerald-600 text-white font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="material-symbols-outlined text-xs">shield</span>
@@ -317,8 +317,8 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
             </button>
             <button
               onClick={() => setFilterMode('alerts')}
-              className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 cursor-pointer ${
-                filterMode === 'alerts' ? 'bg-amber-600 text-white shadow-xs' : 'text-[#464554] hover:bg-amber-50'
+              className={`px-3 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                filterMode === 'alerts' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="material-symbols-outlined text-xs">notifications_active</span>
@@ -329,16 +329,16 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
       </div>
 
       {/* Sector Quick-Nav Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-3 mb-4 text-xs">
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Sector:</span>
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-4 text-xs">
+        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Sector:</span>
         {['all', 'North Quad', 'Central Yard', 'East Yard', 'South Hub', 'West Gate', 'River Quad'].map((sec) => (
           <button
             key={sec}
             onClick={() => setActiveSector(sec)}
-            className={`px-3 py-1 rounded-full whitespace-nowrap transition-all border text-xs font-medium cursor-pointer ${
+            className={`px-3 py-1 rounded-lg whitespace-nowrap transition-all border text-xs font-medium cursor-pointer ${
               activeSector === sec
-                ? 'bg-indigo-50 text-[#4648d4] font-bold border-indigo-300 shadow-xs'
-                : 'bg-white/70 text-[#464554] border-indigo-100 hover:bg-indigo-50/50'
+                ? 'bg-indigo-50 text-indigo-700 font-semibold border-indigo-200 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             {sec === 'all' ? 'All Sectors' : sec}
@@ -347,10 +347,10 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
       </div>
 
       {/* Main Two-Panel Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* LEFT PANEL: Ordered Campus Map Stage (8 Cols) */}
-        <div className="lg:col-span-8 glass-card rounded-3xl p-3 sm:p-4 border border-indigo-200/80 shadow-xl overflow-hidden flex flex-col gap-3 relative">
+        <div className="lg:col-span-8 bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-xs overflow-hidden flex flex-col gap-3 relative">
           
           {/* Map Top Status Strip */}
           <div className="flex items-center justify-between px-2 text-xs text-[#464554]">
@@ -564,31 +564,31 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
         <div className="lg:col-span-4 flex flex-col gap-4 w-full">
           
           {/* Active Checkpoint Telemetry Card */}
-          <div className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-xl flex flex-col gap-4">
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col gap-4">
             
             {/* Header with Code & Security Badge */}
-            <div className="flex items-start justify-between border-b border-indigo-100 pb-3">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-indigo-50 text-[#4648d4] px-2 py-0.5 rounded-md border border-indigo-200/60">
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
                     {selectedZone.code}
                   </span>
-                  <span className="text-[11px] font-bold text-slate-400">
+                  <span className="text-[11px] font-medium text-slate-500">
                     {selectedZone.sector}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1b25] mt-1">
+                <h3 className="text-base font-bold text-slate-900 mt-1">
                   {selectedZone.name}
                 </h3>
               </div>
 
               {selectedZone.isSafeZone ? (
-                <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex items-center gap-1 shadow-xs">
+                <span className="px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200 flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs">shield</span>
                   Safe Vault
                 </span>
               ) : (
-                <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 flex items-center gap-1">
+                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-medium border border-slate-200 flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs">visibility</span>
                   Monitored
                 </span>
@@ -596,41 +596,41 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
             </div>
 
             {/* Description */}
-            <p className="text-xs text-[#464554] leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               {selectedZone.description}
             </p>
 
             {/* Telemetry Metrics Grid */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="p-2.5 rounded-2xl bg-indigo-50/60 border border-indigo-100/80 flex flex-col gap-0.5">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">CCTV Coverage</span>
-                <div className="flex items-center gap-1 text-xs font-mono font-bold text-emerald-700">
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 flex flex-col gap-0.5">
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">CCTV Coverage</span>
+                <div className="flex items-center gap-1 text-xs font-mono font-semibold text-emerald-700">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   {selectedZone.cctvCoverage}
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-2xl bg-indigo-50/60 border border-indigo-100/80 flex flex-col gap-0.5">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Security Status</span>
-                <span className="text-xs font-bold text-[#4648d4] truncate">
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 flex flex-col gap-0.5">
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Security Status</span>
+                <span className="text-xs font-semibold text-indigo-700 truncate">
                   {selectedZone.securityStatus}
                 </span>
               </div>
             </div>
 
             {/* Checkpoint Details */}
-            <div className="p-3.5 rounded-2xl bg-white/80 border border-indigo-100/80 flex flex-col gap-2 text-xs">
+            <div className="p-3.5 rounded-xl bg-slate-50/50 border border-slate-200/60 flex flex-col gap-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Custody Desk:</span>
-                <span className="font-semibold text-[#1a1b25] text-right truncate max-w-[180px]">{selectedZone.desk}</span>
+                <span className="text-slate-500">Custody Desk:</span>
+                <span className="font-medium text-slate-900 text-right truncate max-w-[180px]">{selectedZone.desk}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Access Hours:</span>
-                <span className="font-semibold text-[#1a1b25]">{selectedZone.hours}</span>
+                <span className="text-slate-500">Access Hours:</span>
+                <span className="font-medium text-slate-900">{selectedZone.hours}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Security On Duty:</span>
-                <span className="font-semibold text-indigo-700">{selectedZone.securityStaff}</span>
+                <span className="text-slate-500">Security On Duty:</span>
+                <span className="font-medium text-indigo-700">{selectedZone.securityStaff}</span>
               </div>
             </div>
 
@@ -642,7 +642,7 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
                   const alertMsg = `Safe Meetup Beacon designated for ${selectedZone.name} (${selectedZone.desk}). Desk personnel notified for dual-signature pickup.`;
                   alert(alertMsg);
                 }}
-                className="flex-1 py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold tracking-wide shadow-md shadow-indigo-500/20 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-2.5 rounded-lg btn-gradient-indigo text-white text-xs font-semibold shadow-xs active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">near_me</span>
                 <span>Set Meetup Beacon</span>
@@ -652,42 +652,42 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
           </div>
 
           {/* Active Items Clustered at Location */}
-          <div className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-xl flex flex-col gap-3">
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1a1b25] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-base text-[#4648d4]">inventory_2</span>
-                <span>Active Reports at {selectedZone.code} ({zoneItems.length})</span>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-base text-indigo-600">inventory_2</span>
+                <span>Reports at {selectedZone.code} ({zoneItems.length})</span>
               </h4>
-              <span className="text-[10px] text-slate-400 font-mono font-medium">COARSE VIEW</span>
+              <span className="text-[10px] text-slate-400 font-mono">COARSE</span>
             </div>
 
             {zoneItems.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-2xl text-slate-300">check_circle</span>
-                <span>No active reports in this specific checkpoint.</span>
+              <div className="py-6 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-1">
+                <span className="material-symbols-outlined text-xl text-slate-300">check_circle</span>
+                <span>No active reports in this checkpoint.</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-2.5 max-h-72 overflow-y-auto no-scrollbar pr-1">
+              <div className="flex flex-col gap-2 max-h-72 overflow-y-auto no-scrollbar pr-0.5">
                 {zoneItems.map((item) => (
                   <div
                     key={item.id}
                     onClick={() => onSelectItem(item)}
-                    className="p-3 rounded-2xl bg-white/90 hover:bg-white border border-indigo-100 flex items-center justify-between gap-3 cursor-pointer transition-all hover:border-[#4648d4] hover:shadow-md shadow-xs group"
+                    className="p-2.5 rounded-xl bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/60 flex items-center justify-between gap-3 cursor-pointer transition-all shadow-xs group"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {item.photos && item.photos[0] ? (
                         <img
                           src={item.photos[0]}
                           alt={item.title}
-                          className="w-10 h-10 rounded-xl object-cover ring-1 ring-indigo-100 shrink-0 group-hover:scale-105 transition-transform"
+                          className="w-9 h-9 rounded-lg object-cover ring-1 ring-slate-200 shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-[#4648d4] shrink-0">
-                          <span className="material-symbols-outlined text-lg">devices</span>
+                        <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                          <span className="material-symbols-outlined text-base">devices</span>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h5 className="text-xs font-bold text-[#1a1b25] truncate group-hover:text-[#4648d4] transition-colors">
+                        <h5 className="text-xs font-medium text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
                           {item.title}
                         </h5>
                         <p className="text-[10px] text-slate-400 truncate">
@@ -696,10 +696,10 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
                       </div>
                     </div>
 
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono shrink-0 ${
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold font-mono shrink-0 ${
                       item.type === 'found'
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-rose-50 text-rose-600 border border-rose-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
                     }`}>
                       {item.type.toUpperCase()}
                     </span>

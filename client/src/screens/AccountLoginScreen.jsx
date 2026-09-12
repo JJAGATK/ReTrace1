@@ -136,25 +136,23 @@ export default function AccountLoginScreen({ onLoggedIn }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbf8ff] flex flex-col items-center justify-center p-4 sm:p-6 relative selection:bg-indigo-500/20 selection:text-indigo-600 text-[#1a1b25]">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 sm:p-6 relative text-slate-900 selection:bg-indigo-500/20 selection:text-indigo-600">
       
-      {/* Background ambient lighting */}
+      {/* Subtle ambient light */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-32 left-1/4 w-[360px] md:w-[650px] h-[360px] md:h-[650px] rounded-full bg-indigo-200/40 blur-3xl opacity-80"></div>
-        <div className="absolute top-1/3 -right-24 w-[300px] md:w-[550px] h-[300px] md:h-[550px] rounded-full bg-violet-200/35 blur-3xl opacity-70"></div>
-        <div className="absolute bottom-10 left-10 w-[320px] md:w-[600px] h-[320px] md:h-[600px] rounded-full bg-purple-100/45 blur-3xl opacity-60"></div>
+        <div className="absolute top-1/4 left-1/3 w-[450px] h-[450px] rounded-full bg-indigo-100/30 blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-lg bg-white/90 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-indigo-200/80 flex flex-col gap-5">
+      <div className="relative z-10 w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-slate-200 flex flex-col gap-6">
         
         {/* Brand & Title */}
         <div className="flex flex-col items-center text-center gap-2">
           <Logo size="md" />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25] mt-1">
-            University Campus Lost & Found
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-1">
+            Campus Lost & Found
           </h1>
-          <p className="text-xs sm:text-sm text-[#464554] max-w-sm">
-            Sign in to claim lost property, report found items, or access the security desk console.
+          <p className="text-xs sm:text-sm text-slate-500 max-w-xs">
+            Sign in to claim lost property, report found items, or coordinate safe handovers.
           </p>
         </div>
 
@@ -163,53 +161,44 @@ export default function AccountLoginScreen({ onLoggedIn }) {
             
             {/* Account Selection Dropdown */}
             <div>
-              <label className="block text-xs font-bold text-[#1a1b25] mb-2">
-                Select Account to Log In:
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Select Account:
               </label>
               <div className="relative">
                 <select
                   value={selectedAccountId}
                   onChange={(e) => setSelectedAccountId(e.target.value)}
-                  className="w-full pl-4 pr-10 py-3 rounded-2xl bg-indigo-50/70 hover:bg-indigo-50 border-2 border-indigo-200/80 text-sm font-bold text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4] focus:border-[#4648d4] shadow-xs cursor-pointer appearance-none transition-all"
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer appearance-none transition-colors"
                 >
                   <option value="user-maya">Maya Lin — Student (Finder)</option>
                   <option value="user-julian">Julian Vance — Student (Claimant)</option>
-                  <option value="user-admin">Officer Marcus Vance — Security Administrator Desk</option>
+                  <option value="user-admin">Officer Marcus Vance — Security Desk Admin</option>
                 </select>
-                <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none text-xl">
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">
                   expand_more
                 </span>
               </div>
             </div>
 
             {/* Selected Account Profile Preview Card */}
-            <div className={`p-4 rounded-2xl border-2 transition-all ${
+            <div className={`p-4 rounded-2xl border transition-all ${
               selectedAccount.role === 'admin'
-                ? 'bg-purple-50/70 border-purple-300/80 shadow-xs'
-                : 'bg-indigo-50/40 border-indigo-200/80 shadow-xs'
+                ? 'bg-purple-50/40 border-purple-200'
+                : 'bg-slate-50 border-slate-200'
             }`}>
-              <div className="flex items-start gap-3.5">
-                <div className="relative shrink-0">
-                  <img
-                    src={selectedAccount.avatar}
-                    alt={selectedAccount.name}
-                    className="w-13 h-13 rounded-2xl object-cover ring-2 ring-indigo-200 shadow-sm"
-                  />
-                  <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center text-[10px] ring-2 ring-white ${
-                    selectedAccount.role === 'admin' ? 'bg-purple-600' : 'bg-emerald-500'
-                  }`}>
-                    <span className="material-symbols-outlined text-[11px]">
-                      {selectedAccount.role === 'admin' ? 'shield' : 'check'}
-                    </span>
-                  </span>
-                </div>
+              <div className="flex items-start gap-3">
+                <img
+                  src={selectedAccount.avatar}
+                  alt={selectedAccount.name}
+                  className="w-11 h-11 rounded-full object-cover ring-1 ring-slate-200 shrink-0"
+                />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 flex-wrap">
-                    <h3 className="text-sm font-bold text-[#1a1b25] truncate">
+                    <h3 className="text-sm font-bold text-slate-900 truncate">
                       {selectedAccount.name}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    <span className={`px-2 py-0.2 rounded text-[10px] font-semibold ${
                       selectedAccount.role === 'admin'
                         ? 'bg-purple-100 text-purple-800'
                         : 'bg-emerald-100 text-emerald-800'
@@ -219,25 +208,25 @@ export default function AccountLoginScreen({ onLoggedIn }) {
                   </div>
 
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    {selectedAccount.email} • {selectedAccount.affiliation}
+                    {selectedAccount.email}
                   </p>
 
-                  <p className="text-xs text-[#464554] mt-2 leading-relaxed bg-white/80 p-2 rounded-xl border border-indigo-100/70">
+                  <p className="text-xs text-slate-600 mt-2 leading-relaxed">
                     {selectedAccount.description}
                   </p>
 
-                  <div className="mt-2 flex items-center gap-3 text-[11px] font-bold text-indigo-700">
-                    <span>★ {selectedAccount.trustScore}% Trust Score</span>
-                    <span>• {selectedAccount.returnsCount} Verified Returns</span>
+                  <div className="mt-2 flex items-center gap-3 text-[11px] font-medium text-slate-600">
+                    <span>★ {selectedAccount.trustScore}% Trust</span>
+                    <span>• {selectedAccount.returnsCount} Returns</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Quick 1-Click Cards Selector */}
+            {/* Quick Persona Buttons */}
             <div>
-              <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Or Quick Choose Persona:
+              <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Quick Select:
               </span>
               <div className="grid grid-cols-3 gap-2">
                 {DEMO_ACCOUNTS.map((acc) => {
@@ -247,22 +236,22 @@ export default function AccountLoginScreen({ onLoggedIn }) {
                       key={acc.id}
                       type="button"
                       onClick={() => handleQuickLogin(acc.id)}
-                      className={`p-2.5 rounded-2xl flex flex-col items-center text-center transition-all cursor-pointer border ${
+                      className={`p-2 rounded-xl flex flex-col items-center text-center transition-colors cursor-pointer border ${
                         isSelected
-                          ? 'bg-indigo-100/90 border-[#4648d4] ring-2 ring-indigo-500/30 font-bold'
-                          : 'bg-white hover:bg-indigo-50/60 border-indigo-100 text-slate-600'
+                          ? 'bg-slate-900 text-white border-slate-900 font-semibold'
+                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                       }`}
                     >
                       <img
                         src={acc.avatar}
                         alt={acc.name}
-                        className="w-8 h-8 rounded-full object-cover mb-1 ring-1 ring-indigo-200"
+                        className="w-7 h-7 rounded-full object-cover mb-1 ring-1 ring-slate-200"
                       />
-                      <span className="text-xs font-bold text-[#1a1b25] truncate w-full">
+                      <span className={`text-xs truncate w-full ${isSelected ? 'text-white' : 'text-slate-900'}`}>
                         {acc.name.split(' ')[0]}
                       </span>
-                      <span className="text-[9px] text-slate-400 font-semibold truncate w-full">
-                        {acc.role === 'admin' ? 'Security Desk' : 'Student'}
+                      <span className={`text-[9px] truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                        {acc.role === 'admin' ? 'Desk Admin' : 'Student'}
                       </span>
                     </button>
                   );
@@ -275,21 +264,21 @@ export default function AccountLoginScreen({ onLoggedIn }) {
               type="button"
               disabled={loggingIn}
               onClick={handleLoginSelected}
-              className="w-full py-3.5 px-6 rounded-full btn-gradient-indigo text-white text-sm font-bold shadow-lg shadow-indigo-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-1"
+              className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 mt-1"
             >
-              <span>{loggingIn ? 'Logging in...' : `Log In as ${selectedAccount.name}`}</span>
-              <span className="material-symbols-outlined text-base">arrow_forward</span>
+              <span>{loggingIn ? 'Signing in...' : `Sign in as ${selectedAccount.name.split(' ')[0]}`}</span>
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
 
             {/* .edu SSO Toggle */}
-            <div className="pt-2 border-t border-indigo-100/70 text-center">
+            <div className="pt-2 border-t border-slate-100 text-center">
               <button
                 type="button"
                 onClick={() => setShowEduOtp(true)}
-                className="text-xs text-[#4648d4] font-semibold hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                className="text-xs text-indigo-600 font-medium hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
               >
                 <span className="material-symbols-outlined text-sm">mail</span>
-                <span>Log in with university .edu email</span>
+                <span>Sign in with university .edu email</span>
               </button>
             </div>
 
@@ -297,30 +286,30 @@ export default function AccountLoginScreen({ onLoggedIn }) {
         ) : (
           <div className="flex flex-col gap-4">
             
-            <div className="flex items-center justify-between pb-2 border-b border-indigo-100">
-              <span className="text-xs font-bold text-[#1a1b25]">University .edu Single Sign-On</span>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold text-slate-900">University .edu Login</span>
               <button
                 type="button"
                 onClick={() => setShowEduOtp(false)}
-                className="text-xs text-[#4648d4] font-semibold hover:underline cursor-pointer"
+                className="text-xs text-indigo-600 font-medium hover:underline cursor-pointer"
               >
-                ← Back to Demo Accounts
+                ← Demo Accounts
               </button>
             </div>
 
             {step === 'request' ? (
               <form onSubmit={handleRequestOtp} className="flex flex-col gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#1a1b25] mb-1">
-                    University Email (.edu only)
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    University Email (.edu)
                   </label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student.id@harvard.edu"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                    placeholder="student@harvard.edu"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 text-xs text-slate-900 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
 
@@ -333,23 +322,23 @@ export default function AccountLoginScreen({ onLoggedIn }) {
                 <button
                   type="submit"
                   disabled={loggingIn}
-                  className="w-full py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {loggingIn ? 'Sending Code...' : 'Send 6-Digit Campus OTP'}
+                  {loggingIn ? 'Sending Code...' : 'Send Verification Code'}
                 </button>
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="flex flex-col gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-[#1a1b25]">
-                      Enter 6-Digit OTP Code
+                    <label className="text-xs font-semibold text-slate-700">
+                      Enter 6-Digit Code
                     </label>
                     {demoCode && (
                       <button
                         type="button"
                         onClick={() => setOtpCode(demoCode)}
-                        className="text-[10px] text-[#4648d4] font-bold underline cursor-pointer"
+                        className="text-[10px] text-indigo-600 font-bold underline cursor-pointer"
                       >
                         Use Demo Code: {demoCode}
                       </button>
@@ -362,7 +351,7 @@ export default function AccountLoginScreen({ onLoggedIn }) {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
                     placeholder="441920"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 text-center tracking-widest text-base font-mono text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 text-center tracking-widest text-base font-mono text-slate-900 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
 
@@ -376,14 +365,14 @@ export default function AccountLoginScreen({ onLoggedIn }) {
                   <button
                     type="button"
                     onClick={() => setStep('request')}
-                    className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-[#1a1b25] text-xs font-semibold cursor-pointer"
+                    className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium cursor-pointer"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={loggingIn}
-                    className="flex-1 py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                    className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {loggingIn ? 'Verifying...' : 'Authenticate'}
                   </button>
