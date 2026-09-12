@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
+import LoadingScreen from './components/LoadingScreen';
 import LiveFeedScreen from './screens/LiveFeedScreen';
 import PostItemScreen from './screens/PostItemScreen';
 import ItemDetailScreen from './screens/ItemDetailScreen';
@@ -12,6 +13,7 @@ import LoginModal from './screens/LoginModal';
 
 function MainApp() {
   const { user, token } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('feed'); // 'feed', 'map', 'admin', 'handover', 'post', 'detail'
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +61,10 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbf8ff] text-[#1a1b25] relative selection:bg-indigo-500/20 selection:text-indigo-600 flex flex-col justify-between">
+    <>
+      {isLoading && <LoadingScreen onFinish={() => setIsLoading(false)} />}
+      <div className="min-h-screen bg-[#fbf8ff] text-[#1a1b25] relative selection:bg-indigo-500/20 selection:text-indigo-600 flex flex-col justify-between">
+
       
       {/* Ambient background gradients from Stitch design */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -182,7 +187,8 @@ function MainApp() {
         onClose={() => setShowLoginModal(false)}
       />
 
-    </div>
+      </div>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 
 export default function Header({ onOpenPostModal, onOpenLoginModal, searchQuery, setSearchQuery, currentTab, setCurrentTab }) {
   const { user, switchPersona } = useAuth();
@@ -54,19 +55,9 @@ export default function Header({ onOpenPostModal, onOpenLoginModal, searchQuery,
         <div className="flex items-center gap-3 shrink-0">
           <button 
             onClick={() => setCurrentTab('feed')} 
-            className="flex items-center gap-2.5 group text-left focus:outline-none cursor-pointer"
+            className="flex items-center gap-2 group text-left focus:outline-none cursor-pointer"
           >
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-tr from-[#4648d4] to-[#8455ef] flex items-center justify-center text-white font-bold shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-lg md:text-xl">sync_saved_locally</span>
-            </div>
-            <div>
-              <span className="text-base md:text-lg font-extrabold tracking-tight bg-gradient-to-r from-[#4648d4] to-[#6b38d4] bg-clip-text text-transparent block leading-tight">
-                ReTrace
-              </span>
-              <span className="text-[10px] md:text-[11px] font-medium text-slate-400 block -mt-0.5">
-                Campus Recovery Hub
-              </span>
-            </div>
+            <Logo size="sm" className="group-hover:scale-105 transition-transform" />
           </button>
 
           {/* Campus geofence pill */}

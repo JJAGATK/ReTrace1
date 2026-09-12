@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
 
 export default function LoginModal({ isOpen, onClose }) {
   const { switchPersona, loginWithToken } = useAuth();
@@ -73,9 +74,7 @@ export default function LoginModal({ isOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#4648d4] to-[#8455ef] flex items-center justify-center text-white font-bold shadow-md shadow-indigo-500/20">
-              <span className="material-symbols-outlined text-xl">account_balance</span>
-            </div>
+            <Logo size="xs" showText={false} />
             <div>
               <h3 className="font-bold text-base text-[#1a1b25]">Campus Single Sign-On</h3>
               <p className="text-[11px] text-slate-400">ReTrace University Hub</p>
