@@ -543,6 +543,28 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
               {item.description}
             </p>
 
+            {/* Bounty Reward Callout Banner */}
+            {item.reward_offered && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <span className="material-symbols-outlined text-xl">monetization_on</span>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-amber-800">
+                      Finder Bounty Reward
+                    </div>
+                    <div className="text-sm font-bold text-amber-950">
+                      {item.reward_offered.startsWith('$') ? item.reward_offered : `$${item.reward_offered}`} Offered by Owner
+                    </div>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold shrink-0 shadow-xs">
+                  Escrow Verified
+                </span>
+              </div>
+            )}
+
             {/* Safekeeping Desk Node */}
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
               <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 shrink-0 mt-0.5">

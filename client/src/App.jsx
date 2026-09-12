@@ -11,13 +11,14 @@ import ItemDetailScreen from './screens/ItemDetailScreen';
 import CampusMapScreen from './screens/CampusMapScreen';
 import AdminQueueScreen from './screens/AdminQueueScreen';
 import HandoverChatScreen from './screens/HandoverChatScreen';
+import LeaderboardScreen from './screens/LeaderboardScreen';
 import LoginModal from './screens/LoginModal';
 import AccountLoginScreen from './screens/AccountLoginScreen';
 
 function MainApp() {
   const { user, token, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [currentTab, setCurrentTab] = useState('feed'); // 'feed', 'map', 'admin', 'handover', 'post', 'detail'
+  const [currentTab, setCurrentTab] = useState('feed'); // 'feed', 'map', 'admin', 'handover', 'post', 'detail', 'leaderboard'
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -175,6 +176,10 @@ function MainApp() {
           {currentTab === 'handover' && (
             <HandoverChatScreen activeItemId={activeHandoverItemId} />
           )}
+
+          {currentTab === 'leaderboard' && (
+            <LeaderboardScreen onNavigateTab={handleNavigate} />
+          )}
         </main>
       </div>
 
@@ -190,6 +195,9 @@ function MainApp() {
             <span>University Campus Recovery Network</span>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs">
+            <button onClick={() => setCurrentTab('leaderboard')} className="hover:text-indigo-600 transition-colors cursor-pointer font-medium text-amber-600">
+              🏆 Leaderboard & Bounties
+            </button>
             <button onClick={() => setCurrentTab('map')} className="hover:text-indigo-600 transition-colors cursor-pointer">
               Safe Zones
             </button>

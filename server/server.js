@@ -232,12 +232,14 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
 
 // List items with filters
 app.get('/api/items', async (req, res) => {
-  const { type, category, status, search, building } = req.query;
+  const { type, category, status, search, building, bounty_only } = req.query;
 
   let query = 'SELECT * FROM items WHERE 1=1';
   const params = [];
 
-  if (type && type !== 'all') {
+  if (type === 'bounty' || bounty_only === 'true') {
+    query += " AND reward_offered IS NOT NULL AND reward_offered != '' AND reward_offered != 'None' AND reward_offered != 'null'";
+  } else if (type && type !== 'all') {
     query += ' AND type = ?';
     params.push(type);
   }
@@ -918,20 +920,37 @@ app.post('/api/handovers/:itemId/confirm', authMiddleware, async (req, res) => {
   if (isFullyCompleted) {
     await db.run("UPDATE items SET status = 'returned', custody_status = 'with_claimant' WHERE id = ?", [handover.item_id]);
 
+    // Extract bounty reward numeric amount from item if present
+    let bountyRewardValue = 0;
+    if (item && item.reward_offered) {
+      const match = String(item.reward_offered).match(/\$?(\d+)/);
+      if (match) bountyRewardValue = parseInt(match[1], 10) || 0;
+    }
+
     // Standard SQL compliant with both SQLite and Postgres
     if (handover.finder_id) {
-      await db.run('UPDATE users SET trust_score = (CASE WHEN trust_score + 2 > 100 THEN 100 ELSE trust_score + 2 END), returns_count = returns_count + 1 WHERE id = ?', [handover.finder_id]);
+      await db.run(`
+        UPDATE users 
+        SET trust_score = (CASE WHEN trust_score + 2 > 100 THEN 100 ELSE trust_score + 2 END),
+            returns_count = returns_count + 1,
+            bounties_earned = bounties_earned + ?
+        WHERE id = ?
+      `, [bountyRewardValue, handover.finder_id]);
     }
     if (handover.claimant_id) {
       await db.run('UPDATE users SET trust_score = (CASE WHEN trust_score + 1 > 100 THEN 100 ELSE trust_score + 1 END) WHERE id = ?', [handover.claimant_id]);
     }
+
+    const logMessage = bountyRewardValue > 0
+      ? `Dual-confirmation complete. Item released to verified claimant. Bounty reward of $${bountyRewardValue} awarded to finder. Chain of custody closed.`
+      : `Dual-confirmation complete. Item released to verified claimant. Chain of custody closed successfully.`;
 
     await recordCustodyLog(
       handover.item_id,
       req.user.id,
       req.user.name,
       'HANDOVER_CONFIRMED',
-      `Dual-confirmation complete. Item released to verified claimant. Chain of custody closed successfully.`
+      logMessage
     );
   } else {
     await recordCustodyLog(
@@ -1198,11 +1217,15 @@ app.get('/api/stats', async (req, res) => {
   const returnedCatRows = await db.all("SELECT category, COUNT(*) as count FROM items WHERE status = 'returned' GROUP BY category");
   const returnedCategoryCounts = normalizeCategoryCounts(returnedCatRows);
 
+  // Active bounty items count
+  const bountiesRow = await db.get("SELECT COUNT(*) as c FROM items WHERE reward_offered IS NOT NULL AND reward_offered != '' AND reward_offered != 'None' AND reward_offered != 'null' AND status != 'returned'");
+
   res.json({
     total: Number(totalRow.c),
     active: Number(activeRow.c),
     found: Number(foundRow.c),
     lost: Number(lostRow.c),
+    bounties: Number(bountiesRow ? bountiesRow.c : 0),
     returned: Number(returnedRow.c),
     pendingClaims: Number(pendingRow.c),
     categoryCounts,
@@ -1211,6 +1234,76 @@ app.get('/api/stats', async (req, res) => {
     foundCategoryCounts,
     returnedCategoryCounts
   });
+});
+
+// -------------------------------------------------------------
+// Campus Leaderboard & Ranking API
+// -------------------------------------------------------------
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const users = await db.all(`
+      SELECT id, name, email, role, trust_score, returns_count, bounties_earned, campus_affiliation, avatar_url, created_at
+      FROM users
+      ORDER BY returns_count DESC, trust_score DESC, bounties_earned DESC
+    `);
+
+    const rankedUsers = users.map((u, index) => {
+      const rank = index + 1;
+      const count = Number(u.returns_count) || 0;
+      let tierTitle = 'New Scout 🌱';
+      let tierColor = 'slate';
+      let tierLevel = 1;
+
+      if (count >= 50 || u.role === 'admin') {
+        tierTitle = 'Campus Legend 🏆';
+        tierColor = 'amber';
+        tierLevel = 5;
+      } else if (count >= 15) {
+        tierTitle = 'Master Finder 🥇';
+        tierColor = 'indigo';
+        tierLevel = 4;
+      } else if (count >= 10) {
+        tierTitle = 'Campus Guardian 🛡️';
+        tierColor = 'emerald';
+        tierLevel = 3;
+      } else if (count >= 5) {
+        tierTitle = 'Senior Scout ⭐';
+        tierColor = 'blue';
+        tierLevel = 2;
+      } else if (count >= 1) {
+        tierTitle = 'Active Returner 🌟';
+        tierColor = 'teal';
+        tierLevel = 1;
+      }
+
+      return {
+        rank,
+        ...u,
+        returns_count: count,
+        bounties_earned: Number(u.bounties_earned) || 0,
+        tierTitle,
+        tierColor,
+        tierLevel
+      };
+    });
+
+    const totalReturns = rankedUsers.reduce((acc, u) => acc + u.returns_count, 0);
+    const totalBounties = rankedUsers.reduce((acc, u) => acc + u.bounties_earned, 0);
+    const activeReturners = rankedUsers.filter(u => u.returns_count > 0).length;
+
+    res.json({
+      leaderboard: rankedUsers,
+      stats: {
+        totalReturns,
+        totalBountiesDistributed: totalBounties,
+        activeReturners,
+        topReturner: rankedUsers[0] || null
+      }
+    });
+  } catch (err) {
+    console.error('Leaderboard error:', err);
+    res.status(500).json({ error: 'Failed to generate campus leaderboard' });
+  }
 });
 
 // Notifications API

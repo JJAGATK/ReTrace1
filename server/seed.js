@@ -7,29 +7,42 @@ async function seedDatabase() {
 
   // 1. Seed Users
   const userSql = `
-    INSERT INTO users (id, name, email, role, trust_score, returns_count, campus_affiliation, avatar_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (id, name, email, role, trust_score, returns_count, bounties_earned, campus_affiliation, avatar_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name,
       email = EXCLUDED.email,
       role = EXCLUDED.role,
       trust_score = EXCLUDED.trust_score,
       returns_count = EXCLUDED.returns_count,
+      bounties_earned = EXCLUDED.bounties_earned,
       campus_affiliation = EXCLUDED.campus_affiliation,
       avatar_url = EXCLUDED.avatar_url
   `;
 
   // Fallback for SQLite INSERT OR REPLACE syntax vs Postgres ON CONFLICT
-  const insertUser = async (id, name, email, role, score, returns, campus, avatar) => {
+  const insertUser = async (id, name, email, role, score, returns, bounties, campus, avatar) => {
     if (db.isPostgres) {
-      await db.run(userSql, [id, name, email, role, score, returns, campus, avatar]);
+      await db.run(userSql, [id, name, email, role, score, returns, bounties, campus, avatar]);
     } else {
       await db.run(`
-        INSERT OR REPLACE INTO users (id, name, email, role, trust_score, returns_count, campus_affiliation, avatar_url)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [id, name, email, role, score, returns, campus, avatar]);
+        INSERT OR REPLACE INTO users (id, name, email, role, trust_score, returns_count, bounties_earned, campus_affiliation, avatar_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [id, name, email, role, score, returns, bounties, campus, avatar]);
     }
   };
+
+  await insertUser(
+    'user-admin',
+    'Officer Marcus Vance',
+    'm.vance@campus.harvard.edu',
+    'admin',
+    100,
+    98,
+    450,
+    'Campus Police & Cabot Security Desk',
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80'
+  );
 
   await insertUser(
     'user-maya',
@@ -37,9 +50,46 @@ async function seedDatabase() {
     'maya.lin@harvard.edu',
     'student',
     100,
-    14,
+    18,
+    175,
     'Harvard College Undergrad \'25',
     'https://lh3.googleusercontent.com/aida/AEtjO1VKdmUxVG-N5A5XZLSCGGS6rtwjUGLfaVH3Dp0s6J0SaP324w1jGNJ0D2s8k6BIldEAtdKQdNSIEwtW7-xZAXZhyLIpW2kjsdNTzscC5WRFrvvmYNILvyIwyaaNHG2Y6RBXECtF1wbgoy9N4Uhwf7RhsHJPYtE0z2DZ_0fI5XouhJcRzEUf011ylXziLJHY9Xs2KI_ttBi07vd51-KNZzTBuFs2Rl9CUzH4xXAg4aCSStxwHZ3hvRXVSzo'
+  );
+
+  await insertUser(
+    'user-liam',
+    'Liam Zhao',
+    'liam.zhao@harvard.edu',
+    'student',
+    99,
+    15,
+    140,
+    'Harvard SEAS Applied Physics \'24',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80'
+  );
+
+  await insertUser(
+    'user-sofia',
+    'Sofia Rossi',
+    'sofia.rossi@harvard.edu',
+    'student',
+    99,
+    12,
+    110,
+    'Eliot House Resident \'25',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80'
+  );
+
+  await insertUser(
+    'user-alex',
+    'Alex Rivera',
+    'alex.rivera@harvard.edu',
+    'student',
+    97,
+    8,
+    65,
+    'Harvard Yard Proctor & Bio \'25',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80'
   );
 
   await insertUser(
@@ -49,19 +99,21 @@ async function seedDatabase() {
     'student',
     98,
     4,
+    35,
     'Harvard SEAS Computer Science \'26',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
   );
 
   await insertUser(
-    'user-admin',
-    'Officer Marcus Vance',
-    'm.vance@campus.harvard.edu',
-    'admin',
-    100,
-    98,
-    'Campus Police & Cabot Security Desk',
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80'
+    'user-chloe',
+    'Chloe Kim',
+    'chloe.kim@harvard.edu',
+    'student',
+    96,
+    3,
+    25,
+    'Cabot Science Center Tutor \'26',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80'
   );
 
   // 2. Clear Tables
@@ -316,7 +368,7 @@ async function seedDatabase() {
 
   await logCustodyEvent('REC-8844', 'user-maya', 'Derek T.', 'POSTED', 'Found keys safely turned into Malkin Desk 2.');
 
-  // ITEM 4: Navy Patagonia Backpack (Lost)
+  // ITEM 4: Navy Patagonia Backpack (Lost with $25 bounty)
   const item4Photos = [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAB3Zk7D7UHkLyjyHeYK2KNW3-lYISPvG-FYJeDx_oBUmF1jtr7p2RctR6AVFBtlwHFHLfSnXOGrXl1NxkLmBuD8_3M6G6F-ok3f2uU2p6X488RKdHwh8kYHD-9WeNte6sjlUKVvt8rVikKNrVEYorXIW5Xl7ppArsokTI5m1USRsBzvFnV2suKkALAS0LRrSO5Rm31yrZcH8kOkpHJBiX4jQ6GEA6NkGwPUmb0N2XK86dTL3-08iVXlw'
   ];
@@ -337,7 +389,7 @@ async function seedDatabase() {
     'with_finder',
     JSON.stringify(item4Photos),
     'open',
-    null,
+    '$25 Campus Dining Bounty',
     'user-julian',
     'Sophia K.',
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
@@ -345,7 +397,7 @@ async function seedDatabase() {
     new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
   ]);
 
-  await logCustodyEvent('REC-8845', 'user-julian', 'Sophia K.', 'POSTED', 'Urgent lost backpack report logged with course roster alert.');
+  await logCustodyEvent('REC-8845', 'user-julian', 'Sophia K.', 'POSTED', 'Urgent lost backpack report logged with course roster alert and $25 dining bounty.');
 
   // ITEM 5: Sony WH-1000XM5 Headphones (Returned - showcase)
   const item5Photos = [
@@ -379,6 +431,33 @@ async function seedDatabase() {
   await logCustodyEvent('REC-8846', 'user-maya', 'Jordan K.', 'POSTED', 'Found item entered into registry.');
   await logCustodyEvent('REC-8846', 'user-admin', 'Officer Marcus Vance', 'ADMIN_APPROVED', 'Claim verified via serial match.');
   await logCustodyEvent('REC-8846', 'user-admin', 'Officer Marcus Vance', 'HANDOVER_CONFIRMED', 'Dual signature and student ID confirmation completed. Item safely returned.');
+
+  // ITEM 6: SanDisk 1TB SSD & Senior Thesis Draft (Lost with $100 bounty)
+  await insertItem([
+    'REC-8847',
+    'lost',
+    'SanDisk Extreme 1TB SSD (Senior Thesis Backup)',
+    'Tech & Audio',
+    'Orange bumper ring attached to key carabiner. Contains months of experimental lab data. 100% cash reward upon safe handover!',
+    'Science Center Plaza',
+    'Outdoor Benches East',
+    42.3762,
+    -71.1166,
+    encryptPII('Science Plaza East Lawn Picnic Table 3'),
+    'self_custody',
+    null,
+    'with_finder',
+    JSON.stringify(['https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80']),
+    'open',
+    '$100 Urgent Cash Bounty',
+    'user-liam',
+    'Liam Zhao',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    1,
+    new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+  ]);
+
+  await logCustodyEvent('REC-8847', 'user-liam', 'Liam Zhao', 'POSTED', 'Urgent $100 bounty posted for Senior Thesis SSD backup drive.');
 
   // Seed sample bookmark
   await db.run('INSERT INTO bookmarks (id, user_id, item_id) VALUES (?, ?, ?)', ['BMK-1', 'user-maya', 'REC-8843']);

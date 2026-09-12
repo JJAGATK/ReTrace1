@@ -326,23 +326,64 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
             />
           </div>
 
-          {/* Lost Item Specifics: Reward & Urgent */}
+          {/* Lost Item Specifics: Bounty Reward & Urgent */}
           {itemType === 'lost' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+            <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Optional Reward
-                </label>
-                <input
-                  type="text"
-                  value={reward}
-                  onChange={(e) => setReward(e.target.value)}
-                  placeholder="e.g. $20 or Free Coffee"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-amber-500 text-sm">monetization_on</span>
+                    <span>Offer Finder Bounty / Reward (Optional)</span>
+                  </label>
+                  <span className="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-medium">
+                    Boosts return rate by 4x
+                  </span>
+                </div>
+                
+                {/* Bounty preset chips */}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {['$15', '$25', '$50', '$100'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setReward(reward === preset ? '' : preset)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                        reward === preset
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      🎯 {preset}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setReward('☕ Free Coffee & Treat')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      reward === '☕ Free Coffee & Treat'
+                        ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    ☕ Coffee Treat
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={reward}
+                    onChange={(e) => setReward(e.target.value)}
+                    placeholder="Custom bounty amount or dining perk (e.g. $30, Dinner, Gift Card)"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Bounties are awarded to the honest finder upon successful dual-confirmed handover at the desk.
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 pt-5">
+              <div className="flex items-center gap-2 pt-1">
                 <input
                   type="checkbox"
                   id="urgentCheck"
@@ -350,8 +391,9 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                   onChange={(e) => setIsUrgent(e.target.checked)}
                   className="w-4 h-4 text-rose-600 rounded accent-rose-600 cursor-pointer"
                 />
-                <label htmlFor="urgentCheck" className="text-xs font-medium text-rose-700 cursor-pointer">
-                  Mark as Urgent
+                <label htmlFor="urgentCheck" className="text-xs font-semibold text-rose-700 cursor-pointer flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">priority_high</span>
+                  <span>Mark as Urgent (Critical Keys, Exam Notes, Prescriptions)</span>
                 </label>
               </div>
             </div>

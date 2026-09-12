@@ -65,6 +65,7 @@ if (isPostgres) {
           role TEXT NOT NULL DEFAULT 'student',
           trust_score INTEGER NOT NULL DEFAULT 95,
           returns_count INTEGER NOT NULL DEFAULT 0,
+          bounties_earned INTEGER NOT NULL DEFAULT 0,
           campus_affiliation TEXT NOT NULL DEFAULT 'Harvard University',
           avatar_url TEXT,
           created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -216,6 +217,7 @@ if (isPostgres) {
       role TEXT NOT NULL DEFAULT 'student',
       trust_score INTEGER NOT NULL DEFAULT 95,
       returns_count INTEGER NOT NULL DEFAULT 0,
+      bounties_earned INTEGER NOT NULL DEFAULT 0,
       campus_affiliation TEXT NOT NULL DEFAULT 'Harvard University',
       avatar_url TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -376,7 +378,11 @@ if (isPostgres) {
       return sqlite.exec(sql);
     },
     async initSchema() {
-      // already initialized above
+      try {
+        sqlite.exec(`ALTER TABLE users ADD COLUMN bounties_earned INTEGER DEFAULT 0;`);
+      } catch (e) {
+        // Column already exists
+      }
       return true;
     }
   };

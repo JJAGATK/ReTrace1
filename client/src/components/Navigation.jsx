@@ -38,6 +38,18 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             </button>
 
             <button
+              onClick={() => setCurrentTab('leaderboard')}
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                currentTab === 'leaderboard'
+                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm text-amber-500">emoji_events</span>
+              <span>Leaderboard</span>
+            </button>
+
+            <button
               onClick={() => setCurrentTab('admin')}
               className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
                 currentTab === 'admin'
@@ -117,6 +129,16 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             className="flex items-center justify-center w-11 h-11 rounded-full bg-indigo-600 text-white shadow-md active:scale-95 transition-transform tap-highlight-transparent -mt-3"
           >
             <span className="material-symbols-outlined text-2xl font-bold">add</span>
+          </button>
+
+          <button
+            aria-label="Leaderboard"
+            onClick={() => setCurrentTab('leaderboard')}
+            className={`flex flex-col items-center justify-center w-11 h-11 rounded-full tap-highlight-transparent transition-colors ${
+              currentTab === 'leaderboard' ? 'text-amber-500' : 'text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <span className="material-symbols-outlined text-2xl">emoji_events</span>
           </button>
 
           <button

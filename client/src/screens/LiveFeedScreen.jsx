@@ -96,6 +96,8 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
       if (selectedTypeFilter !== 'all' && selectedTypeFilter !== 'saved') {
         if (selectedTypeFilter === 'returned') {
           params.append('status', 'returned');
+        } else if (selectedTypeFilter === 'bounty') {
+          params.append('bounty_only', 'true');
         } else {
           params.append('type', selectedTypeFilter);
         }
@@ -224,6 +226,10 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
     } else if (selectedTypeFilter === 'returned') {
       countMap = stats.returnedCategoryCounts || {};
       totalCount = stats.returned ?? items.filter(it => it.status === 'returned').length;
+    } else if (selectedTypeFilter === 'bounty') {
+      const bountyItems = items.filter(it => it.reward_offered && String(it.reward_offered).trim() !== '');
+      if (catId === 'All Items') return stats.bounties ?? bountyItems.length;
+      return bountyItems.filter(it => it.category === catId).length;
     } else if (selectedTypeFilter === 'saved') {
       if (catId === 'All Items') return bookmarkedIds.size;
       const standardList = ['Tech & Audio', 'Bags & Wallets', 'Campus IDs', 'Keys & Dorm', 'Bottles & Mugs', 'Books & Notes', 'Eyewear'];
@@ -260,18 +266,21 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
 
       <div className="flex flex-col gap-6">
         
-        {/* Minimal Category Pills Rail */}
+        {/* Minimal Category Rail (Original Icon-Only Design with Tooltips & Badges) */}
         <section className="w-full relative">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Categories</h2>
               <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                {selectedCategory !== 'All Items' ? `${selectedCategory} • ` : ''}
                 {selectedTypeFilter === 'lost'
                   ? `${stats.lost ?? 0} lost`
                   : selectedTypeFilter === 'found'
                   ? `${stats.found ?? 0} found`
                   : selectedTypeFilter === 'returned'
                   ? `${stats.returned ?? 0} reunited`
+                  : selectedTypeFilter === 'bounty'
+                  ? `${stats.bounties ?? 0} bounties`
                   : selectedTypeFilter === 'saved'
                   ? `${bookmarkedIds.size} saved`
                   : `${stats.total ?? items.length ?? 0} items`}
@@ -279,7 +288,7 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
             </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
+          <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1.5 px-0.5">
             {BASE_CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.id;
               const count = getCategoryBadgeCount(cat.id);
@@ -288,23 +297,28 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium shrink-0 transition-all cursor-pointer border ${
+                  title={cat.label}
+                  className={`group relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-2xl shrink-0 transition-all cursor-pointer border ${
                     isActive
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-sm scale-105'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <span className={`material-symbols-outlined text-base ${
-                    isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
+                  <span className={`material-symbols-outlined text-xl transition-transform ${
+                    isActive ? 'text-white' : 'text-slate-600 group-hover:text-slate-900 group-hover:scale-110'
                   }`}>
                     {cat.icon}
                   </span>
-                  <span>{cat.label}</span>
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {count}
-                  </span>
+                  
+                  {count > 0 && (
+                    <span className={`absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full border shadow-xs ${
+                      isActive
+                        ? 'bg-indigo-600 text-white border-white'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-slate-200'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -347,6 +361,23 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span>Found Safeguarded</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedTypeFilter('bounty')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                selectedTypeFilter === 'bounty'
+                  ? 'bg-amber-50 text-amber-700 font-semibold border border-amber-200/60'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xs text-amber-600">monetization_on</span>
+              <span>Bounties</span>
+              {stats.bounties > 0 && (
+                <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-full">
+                  {stats.bounties}
+                </span>
+              )}
             </button>
 
             <button
@@ -654,6 +685,83 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
               >
                 <span className="material-symbols-outlined text-sm">add</span>
                 <span>Post Lost or Found</span>
+              </button>
+            </div>
+
+            {/* Campus Leaderboard Preview Widget */}
+            <div className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col gap-3 border border-slate-200 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-amber-500 text-lg">emoji_events</span>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-900">Campus Leaderboard</h3>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">
+                  Top Returners
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Ranked by verified items returned to rightful owners.
+              </p>
+
+              <div className="flex flex-col gap-1.5 pt-1">
+                <div 
+                  onClick={() => onNavigateTab ? onNavigateTab('leaderboard') : null}
+                  className="p-2.5 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-200/60 flex items-center justify-between transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-900 font-black text-[10px] flex items-center justify-center shrink-0">1</span>
+                    <div className="truncate">
+                      <p className="text-xs font-semibold text-slate-900 truncate">Officer Marcus Vance</p>
+                      <span className="text-[10px] text-amber-700 font-medium">Campus Guardian</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-slate-900">98</span>
+                    <span className="text-[10px] text-slate-500 ml-1">returned</span>
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => onNavigateTab ? onNavigateTab('leaderboard') : null}
+                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 flex items-center justify-between transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-slate-300 text-slate-900 font-bold text-[10px] flex items-center justify-center shrink-0">2</span>
+                    <div className="truncate">
+                      <p className="text-xs font-semibold text-slate-900 truncate">Maya Lin</p>
+                      <span className="text-[10px] text-indigo-600 font-medium">Campus Champion</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-slate-900">18</span>
+                    <span className="text-[10px] text-slate-500 ml-1">returned</span>
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => onNavigateTab ? onNavigateTab('leaderboard') : null}
+                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 flex items-center justify-between transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-amber-700 text-white font-bold text-[10px] flex items-center justify-center shrink-0">3</span>
+                    <div className="truncate">
+                      <p className="text-xs font-semibold text-slate-900 truncate">Liam Zhao</p>
+                      <span className="text-[10px] text-indigo-600 font-medium">Campus Champion</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-slate-900">15</span>
+                    <span className="text-[10px] text-slate-500 ml-1">returned</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => onNavigateTab ? onNavigateTab('leaderboard') : null}
+                className="mt-1 w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <span className="material-symbols-outlined text-sm">leaderboard</span>
+                <span>View Full Leaderboard</span>
               </button>
             </div>
 
