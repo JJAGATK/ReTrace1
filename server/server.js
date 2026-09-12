@@ -54,7 +54,6 @@ async function initializeApp() {
     console.error('[ReTrace] DB Initialization error:', err);
   }
 }
-initializeApp();
 
 // -------------------------------------------------------------
 // Authentication Helpers & Middleware
@@ -1083,21 +1082,61 @@ app.get('/api/admin/audit-export', authMiddleware, adminOnly, async (req, res) =
   });
 });
 
-// Serve frontend static assets from client/dist
-const clientDistPath = path.join(__dirname, '../client/dist');
-app.use(express.static(clientDistPath));
+// Unified Server Startup (Frontend + Backend + DB on single port)
+async function startServer() {
+  await initializeApp();
 
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(clientDistPath, 'index.html'));
-});
+  const isProduction = process.env.NODE_ENV === 'production';
+  const clientRoot = path.join(__dirname, '../client');
+  const clientDistPath = path.join(clientRoot, 'dist');
 
-// Start server
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`ReTrace Campus Security App & API running on http://localhost:${PORT}`);
+  if (!isProduction) {
+    try {
+      const { pathToFileURL } = require('url');
+      const vitePath = path.join(clientRoot, 'node_modules/vite/dist/node/index.js');
+      const { createServer: createViteServer } = await import(pathToFileURL(vitePath).href);
+      const vite = await createViteServer({
+        root: clientRoot,
+        server: {
+          middlewareMode: true
+        },
+        appType: 'spa'
+      });
+      app.use(vite.middlewares);
+      console.log('[ReTrace] Vite Live React Frontend middleware attached.');
+    } catch (viteErr) {
+      console.warn('[ReTrace] Vite dev server fallback to static build:', viteErr.message);
+      if (fs.existsSync(clientDistPath)) {
+        app.use(express.static(clientDistPath));
+        app.use((req, res, next) => {
+          if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+          res.sendFile(path.join(clientDistPath, 'index.html'));
+        });
+      }
+    }
+  } else {
+    if (fs.existsSync(clientDistPath)) {
+      app.use(express.static(clientDistPath));
+      app.use((req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+        res.sendFile(path.join(clientDistPath, 'index.html'));
+      });
+    }
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n===============================================================`);
+    console.log(`  ★ ReTrace All-in-One Server Running!`);
+    console.log(`  ★ Open in Browser: http://localhost:${PORT}`);
+    console.log(`  ★ Network Address: http://127.0.0.1:${PORT}`);
+    console.log(`===============================================================\n`);
   });
 }
 
+startServer().catch(err => {
+  console.error('[ReTrace] Server fatal startup error:', err);
+});
+
 module.exports = app;
+
 

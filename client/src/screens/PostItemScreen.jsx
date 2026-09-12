@@ -115,6 +115,21 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
     setFeedback('Matching Quad Beacons & Encrypting PII...');
 
     try {
+      let activeToken = token;
+      if (!activeToken) {
+        try {
+          const authRes = await fetch('/api/auth/login-demo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ personaId: 'user-maya' })
+          });
+          if (authRes.ok) {
+            const authData = await authRes.json();
+            activeToken = authData.token;
+          }
+        } catch (e) {}
+      }
+
       const bObj = CAMPUS_BUILDINGS.find(b => b.name === building) || CAMPUS_BUILDINGS[0];
 
       const payload = {
@@ -141,7 +156,7 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${activeToken || ''}`
         },
         body: JSON.stringify(payload)
       });
@@ -152,12 +167,12 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
           onPostCreated();
         }, 1200);
       } else {
-        const err = await res.json();
-        setFeedback(err.error || 'Failed to submit report');
+        const err = await res.json().catch(() => ({}));
+        setFeedback(err.error || 'Failed to submit report. Ensure the backend server is running on port 5000.');
         setSubmitting(false);
       }
     } catch (err) {
-      setFeedback('Network error. Check connection to campus net.');
+      setFeedback('Network error. Ensure "npm run dev" is running from the root folder so both backend & frontend are active.');
       setSubmitting(false);
     }
   };

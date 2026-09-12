@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/ReTrace1/',
   plugins: [
     react(),
     tailwindcss()
@@ -13,6 +12,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      },
+      '/uploads': {
         target: 'http://localhost:5000',
         changeOrigin: true
       }

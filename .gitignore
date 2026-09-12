@@ -1,4 +1,19 @@
+# Dependencies
 node_modules/
 client/node_modules/
-client/dist/
+
+# Environment Variables
 .env
+.env.local
+
+# Production Build
+client/dist/
+
+# SQLite Databases & Uploads
+server/*.db
+server/*.db-shm
+server/*.db-wal
+server/uploads/*
+
+# Logs
+*.log
