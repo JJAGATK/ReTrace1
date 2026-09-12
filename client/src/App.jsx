@@ -59,13 +59,13 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbf8ff] dark:bg-[#0a0b14] text-[#1a1b25] dark:text-[#f1f2f9] relative selection:bg-indigo-500/20 selection:text-indigo-400 flex flex-col justify-between transition-colors duration-300">
+    <div className="min-h-screen bg-[#fbf8ff] text-[#1a1b25] relative selection:bg-indigo-500/20 selection:text-indigo-600 flex flex-col justify-between">
       
-      {/* Ambient background gradients */}
+      {/* Ambient background gradients from Stitch design */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-32 left-1/4 w-[320px] md:w-[600px] h-[320px] md:h-[600px] rounded-full bg-indigo-200/35 dark:bg-indigo-900/20 blur-3xl opacity-70"></div>
-        <div className="absolute top-1/3 -right-24 w-[280px] md:w-[500px] h-[280px] md:h-[500px] rounded-full bg-violet-200/30 dark:bg-violet-900/20 blur-3xl opacity-60"></div>
-        <div className="absolute bottom-10 left-10 w-[300px] md:w-[550px] h-[300px] md:h-[550px] rounded-full bg-purple-100/40 dark:bg-purple-900/15 blur-3xl opacity-50"></div>
+        <div className="absolute -top-32 left-1/4 w-[320px] md:w-[600px] h-[320px] md:h-[600px] rounded-full bg-indigo-200/35 blur-3xl opacity-70"></div>
+        <div className="absolute top-1/3 -right-24 w-[280px] md:w-[500px] h-[280px] md:h-[500px] rounded-full bg-violet-200/30 blur-3xl opacity-60"></div>
+        <div className="absolute bottom-10 left-10 w-[300px] md:w-[550px] h-[300px] md:h-[550px] rounded-full bg-purple-100/40 blur-3xl opacity-50"></div>
       </div>
 
       <div>
@@ -152,25 +152,25 @@ function MainApp() {
       </div>
 
       {/* Campus Protocol Footer */}
-      <footer className="mt-12 border-t border-indigo-100/80 dark:border-indigo-900/50 bg-white/40 dark:bg-[#101120]/60 backdrop-blur-md relative z-10">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 dark:text-slate-400 text-xs">
+      <footer className="mt-12 border-t border-indigo-100/80 bg-white/40 backdrop-blur-md relative z-10">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#1a1b25] dark:text-white">ReTrace</span>
+            <span className="font-bold text-[#1a1b25]">ReTrace</span>
             <span>•</span>
             <span>Official University Campus Recovery Protocol</span>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-[11px]">
-            <button onClick={() => setCurrentTab('map')} className="hover:text-[#4648d4] dark:hover:text-indigo-400 transition-colors cursor-pointer">
+            <button onClick={() => setCurrentTab('map')} className="hover:text-[#4648d4] transition-colors cursor-pointer">
               Safe Exchange Zones
             </button>
-            <button onClick={() => setCurrentTab('admin')} className="hover:text-[#4648d4] dark:hover:text-indigo-400 transition-colors cursor-pointer">
+            <button onClick={() => setCurrentTab('admin')} className="hover:text-[#4648d4] transition-colors cursor-pointer">
               Cabot Desk Verification
             </button>
-            <a href="#" className="hover:text-[#4648d4] dark:hover:text-indigo-400 transition-colors">
+            <a href="#" className="hover:text-[#4648d4] transition-colors">
               Privacy & PII Encryption
             </a>
           </div>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500">
+          <span className="text-[11px] text-slate-400">
             © 2026 University Campus Commons. All rights reserved.
           </span>
         </div>

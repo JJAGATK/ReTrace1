@@ -185,7 +185,7 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
     return (
       <div className="max-w-[1240px] mx-auto px-4 py-16 text-center">
         <span className="material-symbols-outlined text-3xl text-[#4648d4] animate-spin mb-2">sync</span>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Decrypting secure ReTrace handover chamber...</p>
+        <p className="text-xs text-slate-500 font-semibold">Decrypting secure ReTrace handover chamber...</p>
       </div>
     );
   }
@@ -202,11 +202,11 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
   const userHasSigned = (isFinder && finderConfirmed) || (isClaimant && claimantConfirmed) || (isAdmin && finderConfirmed && claimantConfirmed);
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 text-[#1a1b25] dark:text-white">
+    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 text-[#1a1b25]">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 md:bottom-8 right-4 sm:right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1a1b25] dark:bg-[#1a1c2e] text-white shadow-2xl text-xs font-semibold border border-indigo-500/30 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-20 md:bottom-8 right-4 sm:right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1a1b25] text-white shadow-2xl text-xs font-semibold border border-indigo-500/30 animate-in fade-in slide-in-from-bottom-5">
           <span className="material-symbols-outlined text-[#10B981] text-base">check_circle</span>
           <span>{toastMessage}</span>
         </div>
@@ -217,11 +217,11 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25] dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
               ReTrace Verified Safe Handover Chamber
             </h1>
           </div>
-          <p className="text-xs text-[#464554] dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464554] mt-0.5">
             Admin-approved coordination channel with physical custody verification and dual-signature sign-off.
           </p>
         </div>
@@ -232,7 +232,7 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
             <select
               value={activeItemId}
               onChange={(e) => setActiveItemId(e.target.value)}
-              className="px-3 py-1.5 rounded-full bg-white dark:bg-[#1a1c2e] border border-indigo-200 dark:border-indigo-800 text-xs font-semibold text-[#1a1b25] dark:text-white shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+              className="px-3 py-1.5 rounded-full bg-white border border-indigo-200 text-xs font-semibold text-[#1a1b25] shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
             >
               {allHandovers.map(h => (
                 <option key={h.id} value={h.item_id}>
@@ -244,8 +244,8 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
 
           <span className={`px-3 py-1 rounded-full text-xs font-bold ${
             isCompleted
-              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40'
-              : 'bg-indigo-50 text-[#4648d4] dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/40'
+              : 'bg-indigo-50 text-[#4648d4] border border-indigo-200'
           }`}>
             {isCompleted ? '✓ Handover Completed' : 'Session Active'}
           </span>
@@ -258,38 +258,38 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
         <div className="lg:col-span-5 flex flex-col gap-5">
           
           {/* Handover Badge Card */}
-          <div className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 dark:border-indigo-800/80 shadow-lg flex flex-col gap-4">
+          <div className="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-lg flex flex-col gap-4">
             
-            <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3">
+            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Item</span>
-                <h3 className="text-sm font-bold text-[#1a1b25] dark:text-white">
+                <h3 className="text-sm font-bold text-[#1a1b25]">
                   {handoverData?.item?.title || 'Apple AirPods Pro'}
                 </h3>
               </div>
-              <span className="font-mono text-xs font-bold text-[#4648d4] dark:text-indigo-400">
+              <span className="font-mono text-xs font-bold text-[#4648d4]">
                 #{handoverData?.item?.id || activeItemId}
               </span>
             </div>
 
             {/* Scheduled Location */}
-            <div className="p-3.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/60 flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-[#4648d4] dark:text-indigo-300 shrink-0">
+            <div className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-indigo-100 text-[#4648d4] shrink-0">
                 <span className="material-symbols-outlined text-lg">local_police</span>
               </div>
               <div className="text-xs">
-                <span className="font-bold text-[#1a1b25] dark:text-white block">Safe Meeting Checkpoint:</span>
-                <p className="text-[#464554] dark:text-slate-300 font-medium mt-0.5">
+                <span className="font-bold text-[#1a1b25] block">Safe Meeting Checkpoint:</span>
+                <p className="text-[#464554] font-medium mt-0.5">
                   {handoverData?.handover?.location_name || 'Cabot Science Library Circulation Desk'}
                 </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-[11px] text-slate-500 mt-1">
                   Time: {handoverData?.handover?.scheduled_time || 'Today until 11:00 PM'}
                 </p>
               </div>
             </div>
 
             {/* Dynamic Handover QR Code Token */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border border-indigo-100 dark:border-indigo-800/60 flex flex-col items-center justify-center text-center">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 flex flex-col items-center justify-center text-center">
               <div className="w-32 h-32 bg-white rounded-xl p-2 shadow-md border border-indigo-100 flex items-center justify-center mb-2">
                 {/* Stylized QR representation */}
                 <div className="w-full h-full border-4 border-[#1a1b25] p-1.5 flex flex-col justify-between">
@@ -306,48 +306,48 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
                   </div>
                 </div>
               </div>
-              <span className="font-mono text-[11px] font-bold text-[#1a1b25] dark:text-indigo-300">
+              <span className="font-mono text-[11px] font-bold text-[#1a1b25]">
                 {handoverData?.handover?.qr_code_token || 'RETRACE_QR_8842CABOT'}
               </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <span className="text-[10px] text-slate-500 mt-0.5">
                 Scan at desk intake terminal to verify claim authorization
               </span>
             </div>
 
             {/* Protected Contact Information */}
-            <div className="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/50 text-xs">
-              <div className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1 mb-1">
+            <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 text-xs">
+              <div className="font-bold text-emerald-800 flex items-center gap-1 mb-1">
                 <span className="material-symbols-outlined text-sm">lock_open</span>
                 <span>Protected Contact Exchange (Participants Only)</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700 dark:text-slate-300 mt-1">
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700 mt-1">
                 <div>
-                  <span className="text-slate-400 dark:text-slate-500 block font-medium">Finder / Custodian:</span>
-                  <span className="font-semibold text-[#1a1b25] dark:text-white">{handoverData?.finder?.name || 'Verified Student'}</span>
+                  <span className="text-slate-400 block font-medium">Finder / Custodian:</span>
+                  <span className="font-semibold text-[#1a1b25]">{handoverData?.finder?.name || 'Verified Student'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 dark:text-slate-500 block font-medium">Verified Claimant:</span>
-                  <span className="font-semibold text-[#1a1b25] dark:text-white">{handoverData?.claimant?.name || 'Julian Vance'}</span>
+                  <span className="text-slate-400 block font-medium">Verified Claimant:</span>
+                  <span className="font-semibold text-[#1a1b25]">{handoverData?.claimant?.name || 'Julian Vance'}</span>
                 </div>
               </div>
             </div>
 
             {/* Dual Confirmation Actions */}
-            <div className="pt-2 border-t border-indigo-100 dark:border-indigo-900/60 flex flex-col gap-2.5">
+            <div className="pt-2 border-t border-indigo-100 flex flex-col gap-2.5">
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-bold text-[#1a1b25] dark:text-white">Dual-Confirmation Status:</span>
+                <span className="font-bold text-[#1a1b25]">Dual-Confirmation Status:</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     finderConfirmed
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                      : 'bg-slate-100 dark:bg-[#1e2034] text-slate-500 dark:text-slate-400'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-slate-100 text-slate-500'
                   }`}>
                     Finder: {finderConfirmed ? 'Signed ✓' : 'Pending'}
                   </span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     claimantConfirmed
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                      : 'bg-slate-100 dark:bg-[#1e2034] text-slate-500 dark:text-slate-400'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-slate-100 text-slate-500'
                   }`}>
                     Claimant: {claimantConfirmed ? 'Signed ✓' : 'Pending'}
                   </span>
@@ -374,13 +374,13 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
                     </span>
                   </button>
                   {userHasSigned && (
-                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 text-center font-semibold mt-1.5">
+                    <p className="text-[11px] text-emerald-600 text-center font-semibold mt-1.5">
                       ✓ Your sign-off is recorded. Waiting for the second party to confirm!
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="p-3 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-center text-xs font-bold flex items-center justify-center gap-1.5 border border-emerald-300/40">
+                <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-800 text-center text-xs font-bold flex items-center justify-center gap-1.5 border border-emerald-300/40">
                   <span className="material-symbols-outlined text-base">verified</span>
                   <span>Handover Complete. Chain of custody closed.</span>
                 </div>
@@ -392,20 +392,20 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
         </div>
 
         {/* RIGHT COLUMN: Handover Chat (7 Cols) */}
-        <div className="lg:col-span-7 glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 dark:border-indigo-800/80 shadow-lg flex flex-col h-[540px]">
+        <div className="lg:col-span-7 glass-card rounded-3xl p-5 sm:p-6 border border-indigo-200/80 shadow-lg flex flex-col h-[540px]">
           
-          <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3 mb-3">
+          <div className="flex items-center justify-between border-b border-indigo-100 pb-3 mb-3">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#4648d4] dark:text-indigo-400 text-xl">forum</span>
-              <h3 className="text-sm font-bold text-[#1a1b25] dark:text-white">Coordination Dispatch Chat</h3>
+              <span className="material-symbols-outlined text-[#4648d4] text-xl">forum</span>
+              <h3 className="text-sm font-bold text-[#1a1b25]">Coordination Dispatch Chat</h3>
             </div>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500">Encrypted End-to-End</span>
+            <span className="text-[11px] text-slate-400">Encrypted End-to-End</span>
           </div>
 
           {/* Messages Feed */}
           <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-1">
             {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs">
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-xs">
                 <span className="material-symbols-outlined text-3xl mb-1">chat_bubble_outline</span>
                 <span>No messages yet. Send a note or click a quick response below to coordinate!</span>
               </div>
@@ -419,8 +419,8 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
                       isMe ? 'self-end items-end' : 'self-start items-start'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-400 mb-0.5">
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-0.5">
+                      <span className="font-semibold text-slate-700">
                         {m.sender_name || (isMe ? 'You' : 'Classmate')}
                       </span>
                       <span>•</span>
@@ -431,8 +431,8 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
                         isMe
                           ? 'bg-gradient-to-r from-[#4648d4] to-[#6b38d4] text-white shadow-sm rounded-tr-xs'
                           : m.is_staff || m.sender_role === 'admin'
-                          ? 'bg-purple-100/80 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-950 dark:text-purple-200 font-medium rounded-tl-xs'
-                          : 'bg-white dark:bg-[#1a1c2e] border border-indigo-100 dark:border-indigo-800/80 text-[#1a1b25] dark:text-white shadow-xs rounded-tl-xs'
+                          ? 'bg-purple-100/80 border border-purple-200 text-purple-950 font-medium rounded-tl-xs'
+                          : 'bg-white border border-indigo-100 text-[#1a1b25] shadow-xs rounded-tl-xs'
                       }`}
                     >
                       {m.text || m.message}
@@ -451,7 +451,7 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
                 key={idx}
                 type="button"
                 onClick={(e) => handleSendMessage(e, chip)}
-                className="shrink-0 px-2.5 py-1 rounded-full bg-indigo-50/80 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-[#4648d4] dark:text-indigo-300 text-[11px] font-medium border border-indigo-200/60 dark:border-indigo-800/60 transition-colors cursor-pointer"
+                className="shrink-0 px-2.5 py-1 rounded-full bg-indigo-50/80 hover:bg-indigo-100:bg-indigo-900/60 text-[#4648d4] text-[11px] font-medium border border-indigo-200/60 transition-colors cursor-pointer"
               >
                 + {chip}
               </button>
@@ -459,13 +459,13 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
           </div>
 
           {/* Chat Input */}
-          <form onSubmit={handleSendMessage} className="pt-2 border-t border-indigo-100 dark:border-indigo-900/60 flex items-center gap-2">
+          <form onSubmit={handleSendMessage} className="pt-2 border-t border-indigo-100 flex items-center gap-2">
             <input
               type="text"
               value={newMsg}
               onChange={(e) => setNewMsg(e.target.value)}
               placeholder="Send coordination note to desk & classmate..."
-              className="flex-1 px-4 py-2.5 rounded-full bg-white dark:bg-[#1a1c2e] border border-indigo-100 dark:border-indigo-800/80 text-xs text-[#1a1b25] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+              className="flex-1 px-4 py-2.5 rounded-full bg-white border border-indigo-100 text-xs text-[#1a1b25] placeholder:text-slate-400:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
             />
             <button
               type="submit"

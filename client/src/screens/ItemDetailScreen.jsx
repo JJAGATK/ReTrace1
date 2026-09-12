@@ -656,50 +656,50 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       {/* SIGHTING SUBMISSION MODAL */}
       {showSightingModal && (
         <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-[#141524] rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 dark:border-indigo-800/80 flex flex-col gap-4 text-[#1a1b25] dark:text-white">
-            <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 flex flex-col gap-4 text-[#1a1b25]">
+            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
                   <span className="material-symbols-outlined text-lg">visibility</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#1a1b25] dark:text-white">Report Item Sighting</h3>
+                  <h3 className="font-bold text-base text-[#1a1b25]">Report Item Sighting</h3>
                   <p className="text-xs text-slate-400">{item.title}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowSightingModal(false)}
-                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-950/60 cursor-pointer"
+                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100:bg-indigo-950/60 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
-            <p className="text-xs text-[#464554] dark:text-slate-300">
+            <p className="text-xs text-[#464554]">
               Where and when did you spot this item? Your report will be instantly dispatched to the campus community and verified owner.
             </p>
 
             <form onSubmit={handleSightingSubmit} className="flex flex-col gap-3">
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">Campus Location</span>
+                <span className="text-xs font-bold text-[#1a1b25]">Campus Location</span>
                 <input
                   type="text"
                   required
                   value={sightingLocation}
                   onChange={(e) => setSightingLocation(e.target.value)}
                   placeholder="e.g. Science Center, 2nd floor lounge sofa"
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
                 />
               </label>
 
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">Notes or Clues</span>
+                <span className="text-xs font-bold text-[#1a1b25]">Notes or Clues</span>
                 <textarea
                   rows={3}
                   value={sightingNotes}
                   onChange={(e) => setSightingNotes(e.target.value)}
                   placeholder="e.g. Saw it near the coffee machine around 1:30 PM. Looked intact."
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none"
                 ></textarea>
               </label>
 
@@ -707,7 +707,7 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                 <button
                   type="button"
                   onClick={() => setShowSightingModal(false)}
-                  className="flex-1 py-2.5 rounded-full bg-slate-100 dark:bg-[#1e2034] hover:bg-slate-200 dark:hover:bg-[#282b45] text-[#1a1b25] dark:text-slate-200 text-xs font-semibold cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200:bg-[#282b45] text-[#1a1b25] text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -727,20 +727,20 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       {/* REPORT / FLAG MODAL */}
       {showReportModal && (
         <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-[#141524] rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 dark:border-indigo-800/80 flex flex-col gap-4 text-[#1a1b25] dark:text-white">
-            <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 flex flex-col gap-4 text-[#1a1b25]">
+            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
                   <span className="material-symbols-outlined text-lg">flag</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#1a1b25] dark:text-white">Report Listing</h3>
+                  <h3 className="font-bold text-base text-[#1a1b25]">Report Listing</h3>
                   <p className="text-xs text-slate-400">Item #{item.id}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowReportModal(false)}
-                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-950/60 cursor-pointer"
+                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100:bg-indigo-950/60 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
@@ -748,11 +748,11 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
 
             <form onSubmit={handleReportSubmit} className="flex flex-col gap-3">
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">Reason</span>
+                <span className="text-xs font-bold text-[#1a1b25]">Reason</span>
                 <select
                   value={reportReason}
                   onChange={(e) => setReportReason(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
                 >
                   <option value="inappropriate">Inappropriate or offensive content</option>
                   <option value="spam">Spam or fake listing</option>
@@ -763,13 +763,13 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
               </label>
 
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">Additional Details</span>
+                <span className="text-xs font-bold text-[#1a1b25]">Additional Details</span>
                 <textarea
                   rows={3}
                   value={reportDetails}
                   onChange={(e) => setReportDetails(e.target.value)}
                   placeholder="Explain why this listing violates campus guidelines..."
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none"
                 ></textarea>
               </label>
 
@@ -777,7 +777,7 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                 <button
                   type="button"
                   onClick={() => setShowReportModal(false)}
-                  className="flex-1 py-2.5 rounded-full bg-slate-100 dark:bg-[#1e2034] hover:bg-slate-200 dark:hover:bg-[#282b45] text-[#1a1b25] dark:text-slate-200 text-xs font-semibold cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200:bg-[#282b45] text-[#1a1b25] text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -797,20 +797,20 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       {/* CUSTODY AUDIT CHAIN MODAL */}
       {showCustodyModal && (
         <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white dark:bg-[#141524] rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 dark:border-indigo-800/80 flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#1a1b25] dark:text-white">
-            <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3">
+          <div className="w-full max-w-lg bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#1a1b25]">
+            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-[#4648d4] dark:text-indigo-400">
+                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-[#4648d4]">
                   <span className="material-symbols-outlined text-lg">lock_reset</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#1a1b25] dark:text-white">Cryptographic Custody Chain</h3>
+                  <h3 className="font-bold text-base text-[#1a1b25]">Cryptographic Custody Chain</h3>
                   <p className="text-xs text-slate-400">ReTrace Immutable Audit Trail</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowCustodyModal(false)}
-                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-950/60 cursor-pointer"
+                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100:bg-indigo-950/60 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
@@ -823,15 +823,15 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
             ) : (
               <div className="flex flex-col gap-3">
                 {custodyLogs.map((log, idx) => (
-                  <div key={log.id || idx} className="p-3 rounded-2xl bg-indigo-50/40 dark:bg-[#1e2034] border border-indigo-100 dark:border-indigo-800/60 text-xs flex flex-col gap-1">
+                  <div key={log.id || idx} className="p-3 rounded-2xl bg-indigo-50/40 border border-indigo-100 text-xs flex flex-col gap-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#1a1b25] dark:text-white capitalize">{log.action_type?.replace(/_/g, ' ')}</span>
+                      <span className="font-bold text-[#1a1b25] capitalize">{log.action_type?.replace(/_/g, ' ')}</span>
                       <span className="text-[10px] text-slate-400 font-mono">
                         {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-[#464554] dark:text-slate-300">{log.notes || `Custody event by ${log.actor_name || 'Authorized Officer'}`}</p>
-                    <div className="text-[10px] font-mono text-slate-400 truncate bg-white/80 dark:bg-[#141524] p-1.5 rounded border border-indigo-100/60 dark:border-indigo-800/50 mt-1">
+                    <p className="text-[#464554]">{log.notes || `Custody event by ${log.actor_name || 'Authorized Officer'}`}</p>
+                    <div className="text-[10px] font-mono text-slate-400 truncate bg-white/80 p-1.5 rounded border border-indigo-100/60 mt-1">
                       Hash: {log.block_hash || log.previous_hash || '0x7e81a9...c4b2'}
                     </div>
                   </div>
@@ -842,7 +842,7 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowCustodyModal(false)}
-                className="px-5 py-2 rounded-full bg-slate-100 dark:bg-[#1e2034] hover:bg-slate-200 dark:hover:bg-[#282b45] text-[#1a1b25] dark:text-slate-200 text-xs font-semibold cursor-pointer"
+                className="px-5 py-2 rounded-full bg-slate-100 hover:bg-slate-200:bg-[#282b45] text-[#1a1b25] text-xs font-semibold cursor-pointer"
               >
                 Close Audit Log
               </button>
@@ -854,28 +854,28 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       {/* Interactive Ownership Verification Modal */}
       {showClaimModal && (
         <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white dark:bg-[#141524] rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 dark:border-indigo-800/80 flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#1a1b25] dark:text-white">
+          <div className="w-full max-w-lg bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-indigo-200/80 flex flex-col gap-4 max-h-[90vh] overflow-y-auto text-[#1a1b25]">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3">
+            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-[#4648d4] dark:text-indigo-400">
+                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-[#4648d4]">
                   <span className="material-symbols-outlined text-lg">fingerprint</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#1a1b25] dark:text-white">Ownership Verification</h3>
+                  <h3 className="font-bold text-base text-[#1a1b25]">Ownership Verification</h3>
                   <p className="text-xs text-slate-400">{item.title} #{item.id}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowClaimModal(false)}
-                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
+                className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100:bg-indigo-950/60 transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
-            <p className="text-xs text-[#464554] dark:text-slate-300 leading-relaxed">
+            <p className="text-xs text-[#464554] leading-relaxed">
               To prevent theft, answer the finder's private questions. Answers are evaluated securely on the server and are never disclosed to other claimants or the public.
             </p>
 
@@ -883,7 +883,7 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
               
               {/* Question 1 */}
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">
+                <span className="text-xs font-bold text-[#1a1b25]">
                   1. {questions[0] || 'What is the custom device broadcast name or lock screen detail?'}
                 </span>
                 <input
@@ -896,14 +896,14 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                     setAnswers(next);
                   }}
                   placeholder="e.g. Evan's Pods 2024 or custom name"
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
                 />
               </label>
 
               {/* Question 2 */}
               {questions[1] && (
                 <label className="flex flex-col gap-1">
-                  <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">
+                  <span className="text-xs font-bold text-[#1a1b25]">
                     2. {questions[1]}
                   </span>
                   <input
@@ -915,14 +915,14 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                       setAnswers(next);
                     }}
                     placeholder="e.g. Laser engraving initials, case color..."
-                    className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                    className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
                   />
                 </label>
               )}
 
               {/* Serial number match */}
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">
+                <span className="text-xs font-bold text-[#1a1b25]">
                   3. Serial Number / Engraved ID (If Known)
                 </span>
                 <input
@@ -930,13 +930,13 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                   value={serialProvided}
                   onChange={(e) => setSerialProvided(e.target.value)}
                   placeholder="e.g. H9CGV42K01 (from box, receipt, or Apple ID)"
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs font-mono text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs font-mono text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
                 />
               </label>
 
               {/* Distinguishing proof notes */}
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#1a1b25] dark:text-slate-200">
+                <span className="text-xs font-bold text-[#1a1b25]">
                   4. Proof of Ownership Notes
                 </span>
                 <textarea
@@ -944,12 +944,12 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                   value={proofNotes}
                   onChange={(e) => setProofNotes(e.target.value)}
                   placeholder="Describe timestamp in Apple Find My, scratches, or attach receipt details..."
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none"
                 ></textarea>
               </label>
 
               {claimFeedback && (
-                <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-xs font-semibold text-[#4648d4] dark:text-indigo-300">
+                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs font-semibold text-[#4648d4]">
                   {claimFeedback}
                 </div>
               )}
@@ -959,7 +959,7 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                 <button
                   type="button"
                   onClick={() => setShowClaimModal(false)}
-                  className="flex-1 py-2.5 rounded-full bg-slate-100 dark:bg-[#1e2034] hover:bg-slate-200 dark:hover:bg-[#282b45] text-[#1a1b25] dark:text-slate-200 text-xs font-semibold cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200:bg-[#282b45] text-[#1a1b25] text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
