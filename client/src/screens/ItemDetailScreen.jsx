@@ -31,6 +31,34 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
   const [custodyLogs, setCustodyLogs] = useState([]);
   const [loadingCustody, setLoadingCustody] = useState(false);
 
+  // Delete State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!token) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/items/${item.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        showToast('✓ Post removed successfully.');
+        setTimeout(() => {
+          onBack();
+        }, 800);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Failed to delete post');
+        setDeleting(false);
+      }
+    } catch (e) {
+      showToast('Network error deleting post');
+      setDeleting(false);
+    }
+  };
+
   // Claim form fields
   const [answers, setAnswers] = useState(['', '']);
   const [serialProvided, setSerialProvided] = useState('');
@@ -283,6 +311,18 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
             <span className="material-symbols-outlined text-sm">verified_user</span>
             <span>Custody Audit</span>
           </button>
+
+          {/* Delete Post Button for Admin or Owner */}
+          {(user?.role === 'admin' || item.user_id === user?.id) && (
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              title={user?.role === 'admin' ? "Delete Listing (Security Administrator)" : "Delete My Listing"}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-600 hover:text-white border border-rose-200 text-rose-600 text-xs font-bold transition-all cursor-pointer shadow-xs"
+            >
+              <span className="material-symbols-outlined text-sm">delete</span>
+              <span>{user?.role === 'admin' ? 'Delete Post (Admin)' : 'Delete Post'}</span>
+            </button>
+          )}
 
           <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-bold flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -973,7 +1013,52 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
               </div>
 
             </form>
+          </div>
+        </div>
+      )}
 
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-rose-200 flex flex-col gap-4 text-[#1a1b25]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-xl">delete_forever</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-[#1a1b25]">Delete Campus Post?</h3>
+                <p className="text-xs text-slate-400">Post ID #{item.id}</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-xs text-[#1a1b25]">
+              <p className="font-bold mb-1">"{item.title}"</p>
+              <p className="text-slate-600 text-[11px] leading-relaxed">
+                Are you sure you want to permanently delete this listing? All active claim challenges, messages, and custody chain events for this item will be removed.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-[#1a1b25] cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-sm">
+                  {deleting ? 'sync' : 'delete'}
+                </span>
+                <span>{deleting ? 'Deleting...' : 'Confirm Delete'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

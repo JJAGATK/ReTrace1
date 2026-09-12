@@ -12,9 +12,10 @@ import CampusMapScreen from './screens/CampusMapScreen';
 import AdminQueueScreen from './screens/AdminQueueScreen';
 import HandoverChatScreen from './screens/HandoverChatScreen';
 import LoginModal from './screens/LoginModal';
+import AccountLoginScreen from './screens/AccountLoginScreen';
 
 function MainApp() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('feed'); // 'feed', 'map', 'admin', 'handover', 'post', 'detail'
   const [selectedItem, setSelectedItem] = useState(null);
@@ -72,6 +73,15 @@ function MainApp() {
     setCurrentTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (!authLoading && !user) {
+    return (
+      <>
+        {isLoading && <LoadingScreen onFinish={() => setIsLoading(false)} />}
+        <AccountLoginScreen onLoggedIn={() => {}} />
+      </>
+    );
+  }
 
   return (
     <>

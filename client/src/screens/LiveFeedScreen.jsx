@@ -37,6 +37,35 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
   // Perks Modal State
   const [showPerksModal, setShowPerksModal] = useState(false);
 
+  // Delete Confirmation Modal State
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState(null);
+  const [deletingPost, setDeletingPost] = useState(false);
+
+  const handleDeleteItem = async (itemId) => {
+    if (!token) return;
+    setDeletingPost(true);
+    try {
+      const res = await fetch(`/api/items/${itemId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(data.message || 'Post removed successfully');
+        setItems(prev => prev.filter(it => it.id !== itemId));
+        fetchStats();
+        setDeleteConfirmItem(null);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Failed to delete post');
+      }
+    } catch (e) {
+      showToast('Network error deleting post');
+    } finally {
+      setDeletingPost(false);
+    }
+  };
+
   const fetchStats = async () => {
     try {
       const res = await fetch('/api/stats');
@@ -536,6 +565,21 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                           >
                             <span className="material-symbols-outlined text-lg sm:text-xl">share</span>
                           </button>
+
+                          {/* Security Administrator or Owner Delete Button */}
+                          {(user?.role === 'admin' || item.user_id === user?.id) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteConfirmItem(item);
+                              }}
+                              title={user?.role === 'admin' ? "Delete Post (Security Admin Desk)" : "Delete My Post"}
+                              aria-label="Delete Post"
+                              className="p-2 rounded-full text-rose-500 hover:text-white hover:bg-rose-600 transition-all cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-lg sm:text-xl">delete</span>
+                            </button>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -900,6 +944,52 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
             >
               Awesome!
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Post Confirmation Modal */}
+      {deleteConfirmItem && (
+        <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-rose-200 flex flex-col gap-4 text-[#1a1b25]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-xl">delete_forever</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-[#1a1b25]">Delete Campus Listing?</h3>
+                <p className="text-xs text-slate-400">Post ID #{deleteConfirmItem.id}</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-xs text-[#1a1b25]">
+              <p className="font-bold mb-1">"{deleteConfirmItem.title}"</p>
+              <p className="text-slate-600 text-[11px] leading-relaxed">
+                Are you sure you want to permanently remove this listing? All associated claim challenges, sightings, and handover dispatch data will be deleted from the database.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                disabled={deletingPost}
+                onClick={() => setDeleteConfirmItem(null)}
+                className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-[#1a1b25] cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deletingPost}
+                onClick={() => handleDeleteItem(deleteConfirmItem.id)}
+                className="flex-1 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-sm">
+                  {deletingPost ? 'sync' : 'delete'}
+                </span>
+                <span>{deletingPost ? 'Deleting...' : 'Confirm Delete'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

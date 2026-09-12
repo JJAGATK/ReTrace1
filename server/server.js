@@ -337,6 +337,32 @@ app.get('/api/items/:id', async (req, res) => {
   });
 });
 
+// Delete item (Admin desk or owner only)
+app.delete('/api/items/:id', authMiddleware, async (req, res) => {
+  const itemId = req.params.id;
+  const item = await db.get('SELECT * FROM items WHERE id = ?', [itemId]);
+  if (!item) return res.status(404).json({ error: 'Item not found' });
+
+  if (req.user.role !== 'admin' && item.user_id !== req.user.id) {
+    return res.status(403).json({ error: 'Unauthorized: Security Administrator or post author access required.' });
+  }
+
+  await db.run('DELETE FROM handover_messages WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM handovers WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM claims WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM challenges WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM sightings WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM bookmarks WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM flags WHERE target_id = ?', [itemId]);
+  await db.run('DELETE FROM custody_logs WHERE item_id = ?', [itemId]);
+  await db.run('DELETE FROM items WHERE id = ?', [itemId]);
+
+  res.json({
+    success: true,
+    message: `Post #${itemId} ("${item.title}") removed successfully by ${req.user.name}.`
+  });
+});
+
 // File Upload Endpoint (Images, Photos, Proofs, Receipts)
 app.post('/api/upload', (req, res) => {
   upload.any()(req, res, (err) => {

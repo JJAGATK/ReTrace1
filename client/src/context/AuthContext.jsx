@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('b2y_token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize with default demo persona (Maya Lin)
+  // Initialize auth from token if available
   useEffect(() => {
     async function initAuth() {
       if (token) {
@@ -25,8 +25,9 @@ export function AuthProvider({ children }) {
           console.error('Failed to fetch user', e);
         }
       }
-      // Fallback: auto-login as Maya Lin for seamless experience
-      switchPersona('user-maya');
+      // No valid session: leave user null so login screen displays
+      setUser(null);
+      setLoading(false);
     }
     initAuth();
   }, []);
@@ -44,6 +45,7 @@ export function AuthProvider({ children }) {
         setUser(data.user);
         setToken(data.token);
         localStorage.setItem('b2y_token', data.token);
+        return data.user;
       }
     } catch (e) {
       console.error('Persona switch failed', e);
@@ -62,7 +64,6 @@ export function AuthProvider({ children }) {
     setUser(null);
     setToken(null);
     localStorage.removeItem('b2y_token');
-    switchPersona('user-maya');
   };
 
   return (
