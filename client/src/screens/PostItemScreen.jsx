@@ -51,6 +51,17 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
+  // Global Escape key navigation
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && onCancel) {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onCancel]);
+
   const handleFileSelect = async (fileList) => {
     if (!fileList || fileList.length === 0) return;
     const files = Array.from(fileList);
@@ -181,8 +192,8 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
   return (
     <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-6 pb-28 text-[#1a1b25]">
       
-      {/* Top Header */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Top Header with Prominent Go Back Navigation */}
+      <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
             Post Lost or Found Item
@@ -195,9 +206,10 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
           <button
             type="button"
             onClick={onCancel}
-            className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-[#1a1b25] text-xs font-semibold cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold cursor-pointer transition-all shadow-xs shrink-0"
           >
-            Cancel
+            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            <span>← Back to Live Feed</span>
           </button>
         )}
       </div>

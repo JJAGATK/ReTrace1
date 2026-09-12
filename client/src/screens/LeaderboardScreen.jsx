@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function LeaderboardScreen({ onNavigateTab }) {
+export default function LeaderboardScreen({ onNavigateTab, onBack }) {
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filterAffiliation, setFilterAffiliation] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Global Escape key navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (onBack) onBack();
+        else if (onNavigateTab) onNavigateTab('feed');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onBack, onNavigateTab]);
 
   useEffect(() => {
     async function fetchLeaderboard() {
@@ -84,6 +96,23 @@ export default function LeaderboardScreen({ onNavigateTab }) {
   return (
     <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-24 text-slate-900">
       
+      {/* Top Navigation Bar with Go Back */}
+      <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-200/80">
+        <button
+          type="button"
+          onClick={() => {
+            if (onBack) onBack();
+            else if (onNavigateTab) onNavigateTab('feed');
+          }}
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          <span>← Back to Live Feed</span>
+        </button>
+
+        <span className="text-xs text-slate-400 font-medium">Campus Recognition Network</span>
+      </div>
+
       {/* Header & Description */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>

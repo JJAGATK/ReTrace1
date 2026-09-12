@@ -19,12 +19,57 @@ function MainApp() {
   const { user, token, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('feed'); // 'feed', 'map', 'admin', 'handover', 'post', 'detail', 'leaderboard'
+  const [tabHistory, setTabHistory] = useState(['feed']);
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingClaimsCount, setPendingClaimsCount] = useState(0);
   const [focusedBuilding, setFocusedBuilding] = useState(null);
   const [activeHandoverItemId, setActiveHandoverItemId] = useState('REC-8842');
+
+  // Change tab with history tracking
+  const navigateToTab = (nextTab, params = {}) => {
+    if (params.building) setFocusedBuilding(params.building);
+    if (params.itemId) {
+      setActiveHandoverItemId(params.itemId);
+      if (nextTab === 'detail' && (!selectedItem || selectedItem.id !== params.itemId)) {
+        fetch(`/api/items/${params.itemId}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => { if (data?.item) setSelectedItem(data.item); })
+          .catch(() => {});
+      }
+    }
+    if (nextTab !== currentTab) {
+      setTabHistory(prev => [...prev.slice(-10), nextTab]);
+    }
+    setCurrentTab(nextTab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Safe Go Back Handler
+  const handleGoBack = () => {
+    if (tabHistory.length > 1) {
+      const newHistory = [...tabHistory];
+      newHistory.pop(); // remove current
+      const prev = newHistory[newHistory.length - 1] || 'feed';
+      setTabHistory(newHistory);
+      setCurrentTab(prev);
+    } else {
+      setCurrentTab('feed');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Global Escape key navigation to return to feed if stuck
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === 'Escape' && currentTab !== 'feed') {
+        handleGoBack();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [currentTab, tabHistory]);
 
   // Poll for pending claims count for admin badge
   useEffect(() => {
@@ -48,31 +93,16 @@ function MainApp() {
 
   const handleSelectItem = (item) => {
     setSelectedItem(item);
-    setCurrentTab('detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateToTab('detail');
   };
 
   const handleOpenClaimModal = (item) => {
     setSelectedItem(item);
-    setCurrentTab('detail');
+    navigateToTab('detail');
   };
 
-  const handleNavigate = async (tab, params = {}) => {
-    if (params.building) setFocusedBuilding(params.building);
-    if (params.itemId) {
-      setActiveHandoverItemId(params.itemId);
-      if (tab === 'detail' && (!selectedItem || selectedItem.id !== params.itemId)) {
-        try {
-          const res = await fetch(`/api/items/${params.itemId}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.item) setSelectedItem(data.item);
-          }
-        } catch (e) {}
-      }
-    }
-    setCurrentTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleNavigate = (tab, params = {}) => {
+    navigateToTab(tab, params);
   };
 
   if (!authLoading && !user) {
@@ -98,35 +128,45 @@ function MainApp() {
       <div>
         {/* Top Header */}
         <Header
-          onOpenPostModal={() => setCurrentTab('post')}
+          onOpenPostModal={() => navigateToTab('post')}
           onOpenLoginModal={() => setShowLoginModal(true)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
+          setCurrentTab={(tab) => navigateToTab(tab)}
           onNavigate={handleNavigate}
         />
 
         {/* Sub-Navigation Desktop & Mobile */}
         <Navigation
           currentTab={currentTab}
-          setCurrentTab={(tab) => {
-            setCurrentTab(tab);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          setCurrentTab={(tab) => navigateToTab(tab)}
           pendingCount={pendingClaimsCount}
-          onOpenPostModal={() => {
-            setCurrentTab('post');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onOpenPostModal={() => navigateToTab('post')}
         />
+
+        {/* Universal Sticky "Go Back" Floating Navigation Pill if outside feed */}
+        {currentTab !== 'feed' && (
+          <aside aria-label="Quick Return" className="fixed bottom-20 left-4 z-40 hidden sm:block">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              title="Go back to previous screen (Esc)"
+              className="px-3.5 py-2 rounded-full bg-slate-900/90 hover:bg-slate-900 text-white shadow-lg text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border border-slate-700/60"
+            >
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
+              <span>Go Back</span>
+              <kbd className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded border border-slate-700 font-mono">Esc</kbd>
+            </button>
+          </aside>
+        )}
 
         {/* Main Body Stage */}
         <main className="relative z-10">
           {currentTab === 'feed' && (
             <LiveFeedScreen
               onSelectItem={handleSelectItem}
-              onOpenPostModal={() => setCurrentTab('post')}
+              onOpenPostModal={() => navigateToTab('post')}
               onOpenClaimModal={handleOpenClaimModal}
               searchQuery={searchQuery}
               onNavigateTab={handleNavigate}
@@ -135,23 +175,19 @@ function MainApp() {
 
           {currentTab === 'post' && (
             <PostItemScreen
-              onPostCreated={() => {
-                setCurrentTab('feed');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onCancel={() => setCurrentTab('feed')}
+              onPostCreated={() => navigateToTab('feed')}
+              onCancel={handleGoBack}
             />
           )}
 
           {currentTab === 'detail' && selectedItem && (
             <ItemDetailScreen
               item={selectedItem}
-              onBack={() => setCurrentTab('feed')}
+              onBack={handleGoBack}
               onNavigate={handleNavigate}
               onClaimSuccess={(claimData) => {
                 if (selectedItem?.id) setActiveHandoverItemId(selectedItem.id);
-                setCurrentTab('handover');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                navigateToTab('handover', { itemId: selectedItem?.id });
               }}
             />
           )}
@@ -160,25 +196,33 @@ function MainApp() {
             <CampusMapScreen 
               onSelectItem={handleSelectItem} 
               focusedBuilding={focusedBuilding}
+              onNavigateTab={handleNavigate}
+              onBack={handleGoBack}
             />
           )}
 
           {currentTab === 'admin' && (
             <AdminQueueScreen
               onSelectItem={handleSelectItem}
-              onHandoverApproved={() => {
-                setCurrentTab('handover');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onHandoverApproved={() => navigateToTab('handover')}
+              onNavigateTab={handleNavigate}
+              onBack={handleGoBack}
             />
           )}
 
           {currentTab === 'handover' && (
-            <HandoverChatScreen activeItemId={activeHandoverItemId} />
+            <HandoverChatScreen 
+              activeItemId={activeHandoverItemId}
+              onNavigateTab={handleNavigate}
+              onBack={handleGoBack}
+            />
           )}
 
           {currentTab === 'leaderboard' && (
-            <LeaderboardScreen onNavigateTab={handleNavigate} />
+            <LeaderboardScreen 
+              onNavigateTab={handleNavigate}
+              onBack={handleGoBack}
+            />
           )}
         </main>
       </div>

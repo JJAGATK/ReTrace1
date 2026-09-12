@@ -65,6 +65,25 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
   const [proofNotes, setProofNotes] = useState('');
   const [submittingClaim, setSubmittingClaim] = useState(false);
   const [claimFeedback, setClaimFeedback] = useState(null);
+  const [claimError, setClaimError] = useState(null);
+  const [claimSuccess, setClaimSuccess] = useState(null);
+
+  // Global Escape key navigation to ensure users never get stuck
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (showClaimModal) setShowClaimModal(false);
+        else if (showSightingModal) setShowSightingModal(false);
+        else if (showReportModal) setShowReportModal(false);
+        else if (showCustodyModal) setShowCustodyModal(false);
+        else if (showDeleteModal) setShowDeleteModal(false);
+        else if (showZoomModal) setShowZoomModal(false);
+        else if (onBack) onBack();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showClaimModal, showSightingModal, showReportModal, showCustodyModal, showDeleteModal, showZoomModal, onBack]);
 
   const photos = item.photos && item.photos.length > 0 ? item.photos : [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAcYCa4DURCtB06gVvwtPVsYi2eLaeQH6lXND3dpajC4vi3vlgOHonBSi1B_lzWF3tQoU5bIfaf8OyHRsRjSFm-ogUAoKhr-MMRDUim8wITRtilwcH6l0-mlWXLPow4TvdpW8tJ02T43qBOA7Gmu1rjjmiDv9OVzPtjPAo3WbvcQPyCuqpRlefbtyUtUtMIeT5P5X2OHygB5eCDHmptk15WKkNEQllzo4Bd-8Mtgh05OHpRy5Ywb8nzmQ'
@@ -143,7 +162,9 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       return;
     }
     setSubmittingClaim(true);
-    setClaimFeedback('Evaluating ownership challenge with secure ReTrace engine...');
+    setClaimError(null);
+    setClaimSuccess(null);
+    setClaimFeedback('Evaluating ownership challenge with secure ReTrace cryptographic engine...');
 
     try {
       const res = await fetch(`/api/items/${item.id}/claim`, {
@@ -160,17 +181,21 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setClaimFeedback(data.message);
+      if (res.ok && data.success) {
+        setClaimFeedback(null);
+        setClaimSuccess(data.message || `✓ Ownership Verified (${data.matchScore}% Match)! Authorized for secure pickup.`);
+        showToast('✓ Ownership challenge verified! Opening handover chamber...');
         setTimeout(() => {
           setShowClaimModal(false);
           if (onClaimSuccess) onClaimSuccess(data);
-        }, 1800);
+        }, 1600);
       } else {
-        setClaimFeedback(data.error || 'Claim evaluation failed');
+        setClaimFeedback(null);
+        setClaimError(data.error || 'Verification Failed: Answers do not match the registered private challenge.');
       }
     } catch (err) {
-      setClaimFeedback('Network error. Failed to evaluate claim.');
+      setClaimFeedback(null);
+      setClaimError('Network error. Failed to evaluate verification challenge.');
     } finally {
       setSubmittingClaim(false);
     }
@@ -1011,8 +1036,29 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
               </label>
 
               {claimFeedback && (
-                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs font-semibold text-[#4648d4]">
-                  {claimFeedback}
+                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-700 flex items-center gap-2 animate-pulse">
+                  <span className="material-symbols-outlined text-base animate-spin">sync</span>
+                  <span>{claimFeedback}</span>
+                </div>
+              )}
+
+              {claimError && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2.5 animate-in fade-in">
+                  <span className="material-symbols-outlined text-rose-600 text-lg shrink-0 mt-0.5">gpp_bad</span>
+                  <div className="flex-1">
+                    <div className="font-bold text-rose-900 mb-0.5">Verification Rejected</div>
+                    <p className="leading-relaxed">{claimError}</p>
+                  </div>
+                </div>
+              )}
+
+              {claimSuccess && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2.5 animate-in fade-in">
+                  <span className="material-symbols-outlined text-emerald-600 text-lg shrink-0 mt-0.5">verified_user</span>
+                  <div className="flex-1">
+                    <div className="font-bold text-emerald-900 mb-0.5">Verified Rightful Owner</div>
+                    <p className="leading-relaxed">{claimSuccess}</p>
+                  </div>
                 </div>
               )}
 
@@ -1021,16 +1067,16 @@ export default function ItemDetailScreen({ item, onBack, onClaimSuccess, onNavig
                 <button
                   type="button"
                   onClick={() => setShowClaimModal(false)}
-                  className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200:bg-[#282b45] text-[#1a1b25] text-xs font-semibold cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold cursor-pointer transition-colors"
                 >
-                  Cancel
+                  ← Go Back / Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingClaim}
                   className="flex-1 py-2.5 rounded-full btn-gradient-indigo text-white text-xs font-bold shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {submittingClaim ? 'Evaluating...' : 'Submit Verification'}
+                  {submittingClaim ? 'Evaluating...' : 'Verify Ownership'}
                 </button>
               </div>
 

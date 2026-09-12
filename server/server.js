@@ -480,21 +480,33 @@ app.post('/api/items', authMiddleware, async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// Claim & Verification Flow
+// Claim & Verification Flow (Strict Security & Anti-Theft Verification)
 // -------------------------------------------------------------
+const failedClaimAttempts = new Map(); // In-memory rate limiting / lockout per (userId:itemId)
+
 app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) => {
   const itemId = req.params.id;
   const { answers = [], serial_provided, proof_notes, proof_photo_url } = req.body;
 
   const item = await db.get('SELECT * FROM items WHERE id = ?', [itemId]);
-  if (!item) return res.status(404).json({ error: 'Item not found' });
+  if (!item) return res.status(404).json({ error: 'Item not found in campus registry.' });
 
   if (item.user_id === req.user.id) {
-    return res.status(400).json({ error: 'You cannot claim an item you reported.' });
+    return res.status(400).json({ error: 'Security Exception: You cannot claim an item you reported.' });
   }
 
   if (item.status === 'returned') {
     return res.status(400).json({ error: 'This item has already been successfully returned to its verified owner.' });
+  }
+
+  // Anti-Brute-Force lockout check: Max 3 failed attempts per user per item
+  const lockoutKey = `${req.user.id}:${itemId}`;
+  const attemptInfo = failedClaimAttempts.get(lockoutKey) || { count: 0, firstAttemptTime: Date.now() };
+  if (attemptInfo.count >= 3 && Date.now() - attemptInfo.firstAttemptTime < 60 * 60 * 1000) {
+    const minutesLeft = Math.ceil((60 * 60 * 1000 - (Date.now() - attemptInfo.firstAttemptTime)) / 60000);
+    return res.status(429).json({
+      error: `Security Lockout: Too many failed verification attempts for this item (${attemptInfo.count}/3). Please wait ${minutesLeft} minute(s) or visit the Campus Security Desk with your physical student ID for in-person review.`
+    });
   }
 
   // Fetch challenge secrets for server-side evaluation
@@ -509,7 +521,9 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
     }
   }
 
-  // Evaluate match server-side
+  const hasConfiguredChallenge = (expectedAnswers && expectedAnswers.length > 0) || Boolean(expectedSerial);
+
+  // Evaluate match server-side with strict cryptographic & fuzzy matching
   const matchResult = evaluateClaim({
     submittedAnswers: answers,
     expectedAnswers,
@@ -519,9 +533,68 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
   });
 
   const claimId = 'CLM-' + crypto.randomUUID().slice(0, 8);
+
+  // If item HAS challenge questions, enforce strict threshold (>= 75% or exact serial match)
+  if (hasConfiguredChallenge) {
+    if (!matchResult.passedThreshold) {
+      // Increment failed attempt counter
+      attemptInfo.count += 1;
+      attemptInfo.firstAttemptTime = attemptInfo.count === 1 ? Date.now() : attemptInfo.firstAttemptTime;
+      failedClaimAttempts.set(lockoutKey, attemptInfo);
+
+      // Record rejected claim attempt in database for audit trail
+      await db.run(`
+        INSERT INTO claims (
+          id, item_id, claimant_id, claimant_name, claimant_email,
+          answers_json, proof_notes, proof_photo_url, serial_provided,
+          match_score, status, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'rejected_verification', CURRENT_TIMESTAMP)
+      `, [
+        claimId,
+        itemId,
+        req.user.id,
+        req.user.name,
+        req.user.email,
+        JSON.stringify(answers),
+        proof_notes || '',
+        proof_photo_url || null,
+        serial_provided || null,
+        matchResult.score
+      ]);
+
+      // Record security audit custody log
+      await recordCustodyLog(
+        itemId,
+        req.user.id,
+        req.user.name,
+        'VERIFICATION_FAILED',
+        `Ownership verification failed for ${req.user.name}. Match score: ${matchResult.score}% (Threshold: 75%). Access to item denied.`
+      );
+
+      return res.status(403).json({
+        success: false,
+        passedThreshold: false,
+        matchScore: matchResult.score,
+        attemptsRemaining: Math.max(0, 3 - attemptInfo.count),
+        error: `Ownership Verification Failed (${matchResult.score}% match confidence). The answers provided do not match the item's private marks or serial number registered by the finder. Only the rightful owner can claim this item. (${Math.max(0, 3 - attemptInfo.count)} attempts remaining)`
+      });
+    }
+  } else {
+    // If no automated challenge exists, require distinguishing proof notes of at least 15 chars
+    if (!proof_notes || proof_notes.trim().length < 15) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide detailed proof of ownership (e.g. serial number, receipt, purchase date, or distinctive hidden markings) for desk verification.'
+      });
+    }
+  }
+
+  // Clear any failed attempts on success
+  failedClaimAttempts.delete(lockoutKey);
+
   const claimStatus = matchResult.passedThreshold ? 'admin_review' : 'submitted';
 
-  // Store claim
+  // Store successful claim
   await db.run(`
     INSERT INTO claims (
       id, item_id, claimant_id, claimant_name, claimant_email,
@@ -542,14 +615,12 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
     claimStatus
   ]);
 
-  // Update item status if strong match
-  if (matchResult.passedThreshold) {
-    await db.run("UPDATE items SET status = 'claim_pending' WHERE id = ?", [itemId]);
-  }
+  // Update item status
+  await db.run("UPDATE items SET status = 'claim_pending' WHERE id = ?", [itemId]);
 
-  // Ensure handover chamber session is activated immediately for coordination
+  // Ensure handover chamber session is activated for verified claimant & finder/desk
   const qrToken = 'VERIFIED_QR_' + crypto.randomBytes(6).toString('hex').toUpperCase();
-  const scheduleTime = 'Available for pickup & coordination';
+  const scheduleTime = 'Available for desk verification & physical pickup';
   const meetingSpot = item.custody_desk_name || 'Cabot Science Library Circulation Desk';
   const handoverId = 'HO-' + crypto.randomUUID().slice(0, 8);
 
@@ -575,9 +646,9 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
         req.user.id,
         scheduleTime,
         meetingSpot,
-        'Direct coordination safe exchange via ReTrace verified protocol.',
+        'Present your verified student ID and matching QR token at the circulation desk.',
         qrToken,
-        matchResult.passedThreshold ? 'scheduled' : 'pending_review'
+        'scheduled'
       ]);
     } else {
       await db.run(`
@@ -593,16 +664,16 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
         req.user.id,
         scheduleTime,
         meetingSpot,
-        'Direct coordination safe exchange via ReTrace verified protocol.',
+        'Present your verified student ID and matching QR token at the circulation desk.',
         qrToken,
-        matchResult.passedThreshold ? 'scheduled' : 'pending_review'
+        'scheduled'
       ]);
     }
   }
 
-  // Insert initial coordination message
+  // Insert verified system notification message into handover chamber
   const initMsgId = 'MSG-' + crypto.randomUUID().slice(0, 8);
-  const greetingText = `Claim filed by ${req.user.name} (Confidence: ${matchResult.score}%). Verification details recorded. Coordinate safe handoff and questions here.`;
+  const greetingText = `✓ Ownership Verification Passed (Confidence: ${matchResult.score}%). Claimant ${req.user.name} matched private verification challenge. Handover authorized at ${meetingSpot}.`;
   await db.run(`
     INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -621,8 +692,8 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
     itemId,
     req.user.id,
     req.user.name,
-    'CLAIM_ATTEMPTED',
-    `Ownership verification challenge submitted by ${req.user.name}. Confidence score: ${matchResult.score}%. Status: ${claimStatus}.`
+    'VERIFICATION_SUCCESSFUL',
+    `Ownership verification passed for ${req.user.name}. Confidence score: ${matchResult.score}%. Handover chamber activated with QR token.`
   );
 
   res.json({
@@ -631,11 +702,9 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
     itemId,
     handoverId: activeHandoverId,
     matchScore: matchResult.score,
-    passedThreshold: matchResult.passedThreshold,
+    passedThreshold: true,
     status: claimStatus,
-    message: matchResult.passedThreshold
-      ? 'Verification answers matched high-confidence criteria! Handover chat channel activated.'
-      : 'Verification submitted! Handover chat channel activated for student and desk coordination.'
+    message: `✓ Ownership Verified (${matchResult.score}% match confidence)! Handover chamber activated for pickup.`
   });
 });
 

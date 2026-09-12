@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-8842' }) {
+export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-8842', onNavigateTab, onBack }) {
   const { user, token } = useAuth();
   const [activeItemId, setActiveItemId] = useState(initialItemId);
   const [allHandovers, setAllHandovers] = useState([]);
@@ -212,7 +212,34 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
         </div>
       )}
 
-      {/* Header */}
+      {/* Header with Go Back Navigation */}
+      <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80">
+        <button
+          type="button"
+          onClick={() => {
+            if (onBack) onBack();
+            else if (onNavigateTab) onNavigateTab('feed');
+          }}
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          <span>← Back to Live Feed</span>
+        </button>
+
+        <div className="flex items-center gap-2">
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('map')}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm text-indigo-600">map</span>
+              <span>Safe Zones Map</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Title & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <div className="flex items-center gap-2">
