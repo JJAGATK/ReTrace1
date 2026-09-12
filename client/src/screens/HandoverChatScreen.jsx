@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-8842' }) {
@@ -11,29 +11,43 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  // Sync with prop changes
+  useEffect(() => {
+    if (initialItemId) {
+      setActiveItemId(initialItemId);
+    }
+  }, [initialItemId]);
 
   // Load all available handover sessions
-  useEffect(() => {
-    async function loadSessions() {
-      if (!token) return;
-      try {
-        const res = await fetch('/api/handovers', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setAllHandovers(data.handovers || []);
+  const loadSessions = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/handovers', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const list = data.handovers || [];
+        setAllHandovers(list);
+        if (list.length > 0 && !activeItemId) {
+          setActiveItemId(list[0].item_id);
         }
-      } catch (e) {
-        console.error('Failed to load handover sessions', e);
       }
+    } catch (e) {
+      console.error('Failed to load handover sessions', e);
     }
+  };
+
+  useEffect(() => {
     loadSessions();
   }, [token]);
 
-  const fetchHandoverAndMessages = async () => {
+  const fetchHandoverAndMessages = async (isPoll = false) => {
+    if (!activeItemId) return;
     try {
-      setLoading(true);
+      if (!isPoll) setLoading(true);
       // Fetch handover details
       const hRes = await fetch(`/api/handovers/${activeItemId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -54,15 +68,27 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
     } catch (e) {
       console.error('Handover fetch error', e);
     } finally {
-      setLoading(false);
+      if (!isPoll) setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (activeItemId) {
-      fetchHandoverAndMessages();
+    if (activeItemId && token) {
+      fetchHandoverAndMessages(false);
+      // Live polling every 3 seconds for instant chat sync
+      const interval = setInterval(() => {
+        fetchHandoverAndMessages(true);
+      }, 3000);
+      return () => clearInterval(interval);
     }
   }, [activeItemId, token]);
+
+  // Auto scroll to latest message
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -70,11 +96,22 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
   };
 
   const handleSendMessage = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!newMsg.trim() || !token) return;
 
     const text = newMsg.trim();
     setNewMsg('');
+
+    // Optimistic message display
+    const tempMsg = {
+      id: 'TEMP-' + Date.now(),
+      sender_id: user?.id,
+      sender_name: user?.name || 'You',
+      sender_role: user?.role || 'student',
+      text: text,
+      created_at: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, tempMsg]);
 
     try {
       const res = await fetch(`/api/handovers/${activeItemId}/messages`, {
@@ -88,7 +125,8 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
 
       if (res.ok) {
         const data = await res.json();
-        setMessages(prev => [...prev, data.message]);
+        setMessages(prev => prev.map(m => m.id === tempMsg.id ? (data.message || m) : m));
+        loadSessions();
       } else {
         showToast('Failed to send message');
       }
@@ -360,6 +398,7 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
                 );
               })
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Input */}

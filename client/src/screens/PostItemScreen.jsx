@@ -19,6 +19,7 @@ const ITEM_CATEGORIES = [
   { id: 'Bottles & Mugs', icon: 'water_bottle' },
   { id: 'Books & Notes', icon: 'menu_book' },
   { id: 'Eyewear', icon: 'qr_code_2' },
+  { id: 'Other', icon: 'category' },
 ];
 
 export default function PostItemScreen({ onPostCreated, onCancel }) {
@@ -28,6 +29,7 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
   const [itemType, setItemType] = useState('found'); // 'found' or 'lost'
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tech & Audio');
+  const [customCategory, setCustomCategory] = useState('');
   const [building, setBuilding] = useState('Cabot Science Library');
   const [floorRoom, setFloorRoom] = useState('');
   const [description, setDescription] = useState('');
@@ -131,11 +133,12 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
       }
 
       const bObj = CAMPUS_BUILDINGS.find(b => b.name === building) || CAMPUS_BUILDINGS[0];
+      const finalCategory = (category === 'Other' && customCategory.trim()) ? customCategory.trim() : category;
 
       const payload = {
         type: itemType,
         title,
-        category,
+        category: finalCategory,
         description,
         coarse_location: building,
         floor_room: floorRoom,
@@ -417,7 +420,7 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
             </h2>
 
             {/* Category Ribbon */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-2 mb-3">
               {ITEM_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
@@ -434,6 +437,21 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                 </button>
               ))}
             </div>
+
+            {category === 'Other' && (
+              <div className="mb-4 p-3 rounded-xl bg-purple-50/60 border border-purple-200/80 animate-in fade-in">
+                <label className="block text-xs font-semibold text-purple-950 mb-1">
+                  Specify Category / Item Type (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="e.g. Umbrella, Musical Instrument, Calculator, Jewelry..."
+                  className="w-full px-3.5 py-1.5 rounded-lg bg-white border border-purple-200 text-xs font-medium text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                />
+              </div>
+            )}
 
             <div className="flex flex-col gap-3">
               <div>

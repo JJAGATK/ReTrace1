@@ -11,6 +11,7 @@ const BASE_CATEGORIES = [
   { id: 'Apparel', label: 'Apparel', icon: 'apparel' },
   { id: 'Books & Notes', label: 'Books', icon: 'menu_book' },
   { id: 'Eyewear', label: 'Eyewear', icon: 'visibility' },
+  { id: 'Other', label: 'Other', icon: 'category' },
 ];
 
 export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenClaimModal, searchQuery, onNavigateTab }) {

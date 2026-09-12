@@ -242,8 +242,15 @@ app.get('/api/items', async (req, res) => {
     params.push(type);
   }
   if (category && category !== 'All' && category !== 'All Items') {
-    query += ' AND category = ?';
-    params.push(category);
+    if (category === 'Other' || category === 'Other Items') {
+      const standard = ['Tech & Audio', 'Bags & Wallets', 'Campus IDs', 'Keys & Dorm', 'Bottles & Mugs', 'Apparel', 'Jackets & Gear', 'Books & Notes', 'Eyewear'];
+      const placeholders = standard.map(() => '?').join(',');
+      query += ` AND (category = 'Other' OR category = 'Other Items' OR category NOT IN (${placeholders}))`;
+      params.push(...standard);
+    } else {
+      query += ' AND category = ?';
+      params.push(category);
+    }
   }
   if (status) {
     query += ' AND status = ?';
@@ -512,6 +519,75 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
     await db.run("UPDATE items SET status = 'claim_pending' WHERE id = ?", [itemId]);
   }
 
+  // Ensure handover chamber session is activated immediately for coordination
+  const qrToken = 'VERIFIED_QR_' + crypto.randomBytes(6).toString('hex').toUpperCase();
+  const scheduleTime = 'Available for pickup & coordination';
+  const meetingSpot = item.custody_desk_name || 'Cabot Science Library Circulation Desk';
+  const handoverId = 'HO-' + crypto.randomUUID().slice(0, 8);
+
+  const existingHandover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [itemId]);
+  const activeHandoverId = existingHandover ? existingHandover.id : handoverId;
+
+  if (!existingHandover) {
+    if (db.isPostgres) {
+      await db.run(`
+        INSERT INTO handovers (
+          id, item_id, claim_id, finder_id, claimant_id,
+          scheduled_time, location_name, exact_directions, qr_code_token, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (item_id) DO UPDATE SET
+          claim_id = EXCLUDED.claim_id,
+          claimant_id = EXCLUDED.claimant_id,
+          status = EXCLUDED.status
+      `, [
+        handoverId,
+        itemId,
+        claimId,
+        item.user_id,
+        req.user.id,
+        scheduleTime,
+        meetingSpot,
+        'Direct coordination safe exchange via ReTrace verified protocol.',
+        qrToken,
+        matchResult.passedThreshold ? 'scheduled' : 'pending_review'
+      ]);
+    } else {
+      await db.run(`
+        INSERT OR REPLACE INTO handovers (
+          id, item_id, claim_id, finder_id, claimant_id,
+          scheduled_time, location_name, exact_directions, qr_code_token, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        handoverId,
+        itemId,
+        claimId,
+        item.user_id,
+        req.user.id,
+        scheduleTime,
+        meetingSpot,
+        'Direct coordination safe exchange via ReTrace verified protocol.',
+        qrToken,
+        matchResult.passedThreshold ? 'scheduled' : 'pending_review'
+      ]);
+    }
+  }
+
+  // Insert initial coordination message
+  const initMsgId = 'MSG-' + crypto.randomUUID().slice(0, 8);
+  const greetingText = `Claim filed by ${req.user.name} (Confidence: ${matchResult.score}%). Verification details recorded. Coordinate safe handoff and questions here.`;
+  await db.run(`
+    INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    initMsgId,
+    activeHandoverId,
+    itemId,
+    req.user.id,
+    req.user.name,
+    req.user.role || 'student',
+    greetingText
+  ]);
+
   // Record audit log with hash chain
   await recordCustodyLog(
     itemId,
@@ -524,12 +600,14 @@ app.post('/api/items/:id/claim', authMiddleware, claimLimiter, async (req, res) 
   res.json({
     success: true,
     claimId,
+    itemId,
+    handoverId: activeHandoverId,
     matchScore: matchResult.score,
     passedThreshold: matchResult.passedThreshold,
     status: claimStatus,
     message: matchResult.passedThreshold
-      ? 'Verification answers matched high-confidence criteria. Claim forwarded to Campus Security Admin for physical release approval.'
-      : 'Verification submitted. If additional documentation is required, campus security desk will contact your university email.'
+      ? 'Verification answers matched high-confidence criteria! Handover chat channel activated.'
+      : 'Verification submitted! Handover chat channel activated for student and desk coordination.'
   });
 });
 
@@ -612,9 +690,9 @@ app.get('/api/handovers', authMiddleware, async (req, res) => {
       SELECT h.*, i.title as item_title, i.category, i.photos_json,
              f.name as finder_name, c.name as claimant_name
       FROM handovers h
-      JOIN items i ON h.item_id = i.id
-      JOIN users f ON h.finder_id = f.id
-      JOIN users c ON h.claimant_id = c.id
+      LEFT JOIN items i ON h.item_id = i.id
+      LEFT JOIN users f ON h.finder_id = f.id
+      LEFT JOIN users c ON h.claimant_id = c.id
       ORDER BY h.created_at DESC
     `);
   } else {
@@ -622,12 +700,12 @@ app.get('/api/handovers', authMiddleware, async (req, res) => {
       SELECT h.*, i.title as item_title, i.category, i.photos_json,
              f.name as finder_name, c.name as claimant_name
       FROM handovers h
-      JOIN items i ON h.item_id = i.id
-      JOIN users f ON h.finder_id = f.id
-      JOIN users c ON h.claimant_id = c.id
-      WHERE h.finder_id = ? OR h.claimant_id = ?
+      LEFT JOIN items i ON h.item_id = i.id
+      LEFT JOIN users f ON h.finder_id = f.id
+      LEFT JOIN users c ON h.claimant_id = c.id
+      WHERE h.finder_id = ? OR h.claimant_id = ? OR (i.user_id = ?)
       ORDER BY h.created_at DESC
-    `, [req.user.id, req.user.id]);
+    `, [req.user.id, req.user.id, req.user.id]);
   }
 
   res.json({ handovers });
@@ -635,21 +713,49 @@ app.get('/api/handovers', authMiddleware, async (req, res) => {
 
 // Get single handover session details
 app.get('/api/handovers/:itemId', authMiddleware, async (req, res) => {
-  const handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
-  if (!handover) return res.status(404).json({ error: 'Handover record not found' });
+  let handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
+  const item = await db.get('SELECT * FROM items WHERE id = ?', [req.params.itemId]);
+  if (!item) return res.status(404).json({ error: 'Item not found' });
 
-  const isParticipant =
-    req.user.id === handover.finder_id ||
-    req.user.id === handover.claimant_id ||
-    req.user.role === 'admin';
-
-  if (!isParticipant) {
-    return res.status(403).json({ error: 'You are not authorized to view this handover session.' });
+  // If no handover row yet, auto-create one linked to latest claim or item reporter
+  if (!handover) {
+    const claim = await db.get('SELECT * FROM claims WHERE item_id = ? ORDER BY created_at DESC LIMIT 1', [req.params.itemId]);
+    const hId = 'HO-' + crypto.randomUUID().slice(0, 8);
+    const qrToken = 'VERIFIED_QR_' + crypto.randomBytes(6).toString('hex').toUpperCase();
+    await db.run(`
+      INSERT INTO handovers (
+        id, item_id, claim_id, finder_id, claimant_id,
+        scheduled_time, location_name, exact_directions, qr_code_token, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')
+    `, [
+      hId,
+      item.id,
+      claim ? claim.id : 'CLM-DIRECT',
+      item.user_id,
+      claim ? claim.claimant_id : req.user.id,
+      'Available for pickup & coordination',
+      item.custody_desk_name || 'Cabot Science Library Circulation Desk',
+      'Coordinate safe handoff details via this chat.',
+      qrToken
+    ]);
+    handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
   }
 
-  const item = await db.get('SELECT * FROM items WHERE id = ?', [handover.item_id]);
-  const finder = await db.get('SELECT id, name, email, trust_score, avatar_url FROM users WHERE id = ?', [handover.finder_id]);
-  const claimant = await db.get('SELECT id, name, email, trust_score, avatar_url FROM users WHERE id = ?', [handover.claimant_id]);
+  const finder = await db.get('SELECT id, name, email, trust_score, avatar_url FROM users WHERE id = ?', [handover.finder_id]) || {
+    id: handover.finder_id,
+    name: item.reporter_name || 'Item Custodian / Finder',
+    email: 'custody@campus.harvard.edu',
+    trust_score: 98,
+    avatar_url: item.reporter_avatar
+  };
+
+  const claimant = await db.get('SELECT id, name, email, trust_score, avatar_url FROM users WHERE id = ?', [handover.claimant_id]) || {
+    id: req.user.id,
+    name: req.user.name,
+    email: req.user.email,
+    trust_score: req.user.trust_score || 95,
+    avatar_url: req.user.avatar_url
+  };
 
   res.json({
     handover,
@@ -690,7 +796,7 @@ app.post('/api/handovers/:itemId/messages', authMiddleware, async (req, res) => 
     req.params.itemId,
     req.user.id,
     req.user.name,
-    req.user.role,
+    req.user.role || 'student',
     text.trim()
   ]);
 

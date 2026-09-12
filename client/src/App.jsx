@@ -101,6 +101,7 @@ function MainApp() {
               onOpenPostModal={() => setCurrentTab('post')}
               onOpenClaimModal={handleOpenClaimModal}
               searchQuery={searchQuery}
+              onNavigateTab={handleNavigate}
             />
           )}
 
@@ -119,8 +120,9 @@ function MainApp() {
               item={selectedItem}
               onBack={() => setCurrentTab('feed')}
               onNavigate={handleNavigate}
-              onClaimSuccess={() => {
-                setCurrentTab('admin');
+              onClaimSuccess={(claimData) => {
+                if (selectedItem?.id) setActiveHandoverItemId(selectedItem.id);
+                setCurrentTab('handover');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             />
