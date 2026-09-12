@@ -785,7 +785,8 @@ app.get('/api/handovers', authMiddleware, async (req, res) => {
   if (req.user.role === 'admin') {
     handovers = await db.all(`
       SELECT h.*, i.title as item_title, i.category, i.photos_json,
-             f.name as finder_name, c.name as claimant_name
+             f.name as finder_name, f.avatar_url as finder_avatar,
+             c.name as claimant_name, c.avatar_url as claimant_avatar
       FROM handovers h
       LEFT JOIN items i ON h.item_id = i.id
       LEFT JOIN users f ON h.finder_id = f.id
@@ -795,7 +796,8 @@ app.get('/api/handovers', authMiddleware, async (req, res) => {
   } else {
     handovers = await db.all(`
       SELECT h.*, i.title as item_title, i.category, i.photos_json,
-             f.name as finder_name, c.name as claimant_name
+             f.name as finder_name, f.avatar_url as finder_avatar,
+             c.name as claimant_name, c.avatar_url as claimant_avatar
       FROM handovers h
       LEFT JOIN items i ON h.item_id = i.id
       LEFT JOIN users f ON h.finder_id = f.id
@@ -805,7 +807,23 @@ app.get('/api/handovers', authMiddleware, async (req, res) => {
     `, [req.user.id, req.user.id, req.user.id]);
   }
 
-  res.json({ handovers });
+  const enrichedHandovers = await Promise.all(handovers.map(async (h) => {
+    const lastMsg = await db.get(`
+      SELECT text, created_at, sender_name, sender_id
+      FROM handover_messages
+      WHERE handover_id = ? OR item_id = ?
+      ORDER BY created_at DESC LIMIT 1
+    `, [h.id, h.item_id]);
+
+    return {
+      ...h,
+      last_message: lastMsg ? lastMsg.text : 'Handover session initiated.',
+      last_message_time: lastMsg ? lastMsg.created_at : h.created_at,
+      last_sender: lastMsg ? lastMsg.sender_name : null
+    };
+  }));
+
+  res.json({ handovers: enrichedHandovers });
 });
 
 // Get single handover session details

@@ -11,19 +11,28 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
-  const messagesEndRef = useRef(null);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [showHandoverDetails, setShowHandoverDetails] = useState(true);
+  const [showMobileChatView, setShowMobileChatView] = useState(true);
+  const [showUnreadPill, setShowUnreadPill] = useState(false);
+
+  const chatContainerRef = useRef(null);
+  const isNearBottomRef = useRef(true);
+  const prevMessagesLengthRef = useRef(0);
+  const initialScrollDoneRef = useRef(false);
 
   const quickChips = [
-    "I'm at the Cabot circulation desk now",
-    "On my way! Will be there in 5 minutes",
-    "I have my verified Student ID card ready",
-    "Item safely received. Thank you so much!"
+    "I'm at the circulation desk now",
+    "On my way! Will be there in 5 mins",
+    "I have my verified Student ID ready",
+    "Item safely received. Thank you!"
   ];
 
-  // Sync with prop changes
+  // Sync prop changes
   useEffect(() => {
     if (initialItemId) {
       setActiveItemId(initialItemId);
+      setShowMobileChatView(true);
     }
   }, [initialItemId]);
 
@@ -70,7 +79,8 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
       });
       if (mRes.ok) {
         const mData = await mRes.json();
-        setMessages(mData.messages || []);
+        const incomingMessages = mData.messages || [];
+        setMessages(incomingMessages);
       }
     } catch (e) {
       console.error('Handover fetch error', e);
@@ -81,8 +91,9 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
 
   useEffect(() => {
     if (activeItemId && token) {
+      initialScrollDoneRef.current = false;
       fetchHandoverAndMessages(false);
-      // Live polling every 3 seconds for instant chat sync
+
       const interval = setInterval(() => {
         fetchHandoverAndMessages(true);
       }, 3000);
@@ -90,12 +101,52 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
     }
   }, [activeItemId, token]);
 
-  // Auto scroll to latest message
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  // Smart Auto-Scroll Behavior
+  const scrollToBottom = (smooth = true) => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+      });
+      setShowUnreadPill(false);
+      isNearBottomRef.current = true;
     }
-  }, [messages]);
+  };
+
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+    const isAtBottom = distanceToBottom < 90;
+    isNearBottomRef.current = isAtBottom;
+    if (isAtBottom) {
+      setShowUnreadPill(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!messages || messages.length === 0) return;
+
+    if (!initialScrollDoneRef.current) {
+      // First load of active chat: scroll to bottom instantly
+      setTimeout(() => {
+        scrollToBottom(false);
+        initialScrollDoneRef.current = true;
+      }, 50);
+    } else if (messages.length > prevMessagesLengthRef.current) {
+      const lastMsg = messages[messages.length - 1];
+      const isMyMsg = lastMsg?.sender_id === user?.id;
+
+      if (isMyMsg || isNearBottomRef.current) {
+        // Scroll down automatically if user sent it or user is already at bottom
+        scrollToBottom(true);
+      } else {
+        // User is scrolled up reading history: do NOT jump down, show pill
+        setShowUnreadPill(true);
+      }
+    }
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages, user?.id]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -119,7 +170,9 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
       text: textToSend,
       created_at: new Date().toISOString()
     };
+
     setMessages(prev => [...prev, tempMsg]);
+    setTimeout(() => scrollToBottom(true), 40);
 
     try {
       const res = await fetch(`/api/handovers/${activeItemId}/messages`, {
@@ -181,15 +234,6 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
     }
   };
 
-  if (loading && !handoverData) {
-    return (
-      <div className="max-w-[1240px] mx-auto px-4 py-16 text-center">
-        <span className="material-symbols-outlined text-3xl text-[#4648d4] animate-spin mb-2">sync</span>
-        <p className="text-xs text-slate-500 font-semibold">Decrypting secure ReTrace handover chamber...</p>
-      </div>
-    );
-  }
-
   const isFinder = user?.id === handoverData?.handover?.finder_id || (handoverData?.item && user?.id === handoverData?.item?.user_id);
   const isClaimant = user?.id === handoverData?.handover?.claimant_id || (!isFinder && user?.role !== 'admin');
   const isAdmin = user?.role === 'admin';
@@ -198,11 +242,32 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
   const claimantConfirmed = Boolean(handoverData?.handover?.claimant_confirmed);
   const isCompleted = handoverData?.handover?.status === 'completed' || (finderConfirmed && claimantConfirmed);
 
-  // Check if current user has already signed
   const userHasSigned = (isFinder && finderConfirmed) || (isClaimant && claimantConfirmed) || (isAdmin && finderConfirmed && claimantConfirmed);
 
+  // Filter handover chats for WhatsApp sidebar
+  const filteredHandovers = allHandovers.filter(h => {
+    if (!searchFilter.trim()) return true;
+    const term = searchFilter.toLowerCase();
+    const titleMatch = (h.item_title || '').toLowerCase().includes(term);
+    const idMatch = (h.item_id || '').toLowerCase().includes(term);
+    const finderMatch = (h.finder_name || '').toLowerCase().includes(term);
+    const claimantMatch = (h.claimant_name || '').toLowerCase().includes(term);
+    return titleMatch || idMatch || finderMatch || claimantMatch;
+  });
+
+  // Get current active partner information
+  const partnerName = isFinder
+    ? (handoverData?.claimant?.name || handoverData?.handover?.claimant_name || 'Verified Claimant')
+    : (handoverData?.finder?.name || handoverData?.handover?.finder_name || 'Item Finder / Custodian');
+  
+  const partnerAvatar = isFinder
+    ? (handoverData?.claimant?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80')
+    : (handoverData?.finder?.avatar_url || 'https://lh3.googleusercontent.com/aida/AEtjO1VKdmUxVG-N5A5XZLSCGGS6rtwjUGLfaVH3Dp0s6J0SaP324w1jGNJ0D2s8k6BIldEAtdKQdNSIEwtW7-xZAXZhyLIpW2kjsdNTzscC5WRFrvvmYNILvyIwyaaNHG2Y6RBXECtF1wbgoy9N4Uhwf7RhsHJPYtE0z2DZ_0fI5XouhJcRzEUf011ylXziLJHY9Xs2KI_ttBi07vd51-KNZzTBuFs2Rl9CUzH4xXAg4aCSStxwHZ3hvRXVSzo');
+
+  const partnerRoleLabel = isFinder ? 'Claimant' : (user?.role === 'admin' ? 'Participant' : 'Finder');
+
   return (
-    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-24 text-slate-900">
+    <div className="max-w-[1280px] mx-auto px-2 sm:px-6 lg:px-8 py-4 pb-20 text-slate-900">
       
       {/* Toast Notification */}
       {toastMessage && (
@@ -212,25 +277,33 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
         </div>
       )}
 
-      {/* Header with Go Back Navigation */}
+      {/* Header Bar */}
       <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80">
-        <button
-          type="button"
-          onClick={() => {
-            if (onBack) onBack();
-            else if (onNavigateTab) onNavigateTab('feed');
-          }}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold shadow-xs transition-all cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
-          <span>← Back to Live Feed</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (onBack) onBack();
+              else if (onNavigateTab) onNavigateTab('feed');
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            <span>← Back to Live Feed</span>
+          </button>
+          <div>
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span className="material-symbols-outlined text-indigo-600 text-xl">forum</span>
+              <span>ReTrace Messages & Coordination</span>
+            </h1>
+          </div>
+        </div>
 
         <div className="flex items-center gap-2">
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('map')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm text-indigo-600">map</span>
               <span>Safe Zones Map</span>
@@ -239,269 +312,379 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
         </div>
       </div>
 
-      {/* Title & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <h1 className="text-xl font-bold text-slate-900">
-              Verified Handover Chamber
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Admin-approved coordination with physical custody verification and dual-signature sign-off.
-          </p>
-        </div>
-
-        {/* Handover Session Selector if multiple */}
-        <div className="flex items-center gap-2">
-          {allHandovers.length > 1 && (
-            <select
-              value={activeItemId}
-              onChange={(e) => setActiveItemId(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {allHandovers.map(h => (
-                <option key={h.id} value={h.item_id}>
-                  Item #{h.item_id} — {h.item_title}
-                </option>
-              ))}
-            </select>
-          )}
-
-          <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-            isCompleted
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-          }`}>
-            {isCompleted ? '✓ Completed' : 'Session Active'}
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      {/* WHATSAPP 2-COLUMN LAYOUT CONTAINER */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[640px] h-[calc(100vh-180px)] max-h-[820px]">
         
-        {/* LEFT COLUMN: Meeting Details & Dynamic QR Code (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
+        {/* ========================================================= */}
+        {/* LEFT SIDEBAR: WHATSAPP CHATS LIST (4 cols desktop)       */}
+        {/* ========================================================= */}
+        <div className={`md:col-span-4 lg:col-span-4 border-r border-slate-200/80 bg-slate-50/50 flex flex-col h-full ${
+          showMobileChatView ? 'hidden md:flex' : 'flex'
+        }`}>
           
-          {/* Handover Badge Card */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col gap-4">
-            
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block">Target Item</span>
-                <h3 className="text-xs sm:text-sm font-semibold text-slate-900">
-                  {handoverData?.item?.title || 'Apple AirPods Pro'}
-                </h3>
+          {/* Sidebar Top Search & Header */}
+          <div className="p-3.5 border-b border-slate-200/80 bg-white space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900 text-sm">Conversations</span>
+                <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[11px]">
+                  {allHandovers.length}
+                </span>
               </div>
-              <span className="font-mono text-xs font-semibold text-indigo-600">
-                #{handoverData?.item?.id || activeItemId}
-              </span>
+              <span className="text-[10px] text-slate-400 font-medium">Verified Encrypted</span>
             </div>
 
-            {/* Scheduled Location */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 flex items-start gap-3">
-              <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
-                <span className="material-symbols-outlined text-base">local_police</span>
-              </div>
-              <div className="text-xs">
-                <span className="font-semibold text-slate-800 block">Safe Meeting Checkpoint:</span>
-                <p className="text-slate-600 mt-0.5">
-                  {handoverData?.handover?.location_name || 'Cabot Science Library Circulation Desk'}
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Time: {handoverData?.handover?.scheduled_time || 'Today until 11:00 PM'}
-                </p>
-              </div>
+            {/* Search filter input */}
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-base">search</span>
+              <input
+                type="text"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                placeholder="Search chats or items..."
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200/80 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
-
-            {/* Dynamic Handover QR Code Token */}
-            <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 flex flex-col items-center justify-center text-center">
-              <div className="w-28 h-28 bg-white rounded-lg p-2 shadow-xs border border-slate-200 flex items-center justify-center mb-2">
-                {/* Stylized QR representation */}
-                <div className="w-full h-full border-2 border-slate-900 p-1 flex flex-col justify-between">
-                  <div className="flex justify-between">
-                    <div className="w-4 h-4 bg-slate-900"></div>
-                    <div className="w-4 h-4 bg-slate-900"></div>
-                  </div>
-                  <div className="text-[8px] font-mono font-bold tracking-tighter text-indigo-600">
-                    RETRACE_ID
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="w-4 h-4 bg-slate-900"></div>
-                    <div className="w-3 h-3 bg-indigo-600"></div>
-                  </div>
-                </div>
-              </div>
-              <span className="font-mono text-[11px] font-semibold text-slate-900">
-                {handoverData?.handover?.qr_code_token || 'RETRACE_QR_8842CABOT'}
-              </span>
-              <span className="text-[10px] text-slate-400 mt-0.5">
-                Scan at desk intake terminal to verify claim authorization
-              </span>
-            </div>
-
-            {/* Protected Contact Information */}
-            <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 text-xs">
-              <div className="font-semibold text-emerald-800 flex items-center gap-1 mb-1">
-                <span className="material-symbols-outlined text-sm">lock_open</span>
-                <span>Protected Contact Exchange (Participants Only)</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 mt-1">
-                <div>
-                  <span className="text-slate-400 block">Finder / Custodian:</span>
-                  <span className="font-medium text-slate-800">{handoverData?.finder?.name || 'Verified Student'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block">Verified Claimant:</span>
-                  <span className="font-medium text-slate-800">{handoverData?.claimant?.name || 'Julian Vance'}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Dual Confirmation Actions */}
-            <div className="pt-2 border-t border-slate-100 flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-medium text-slate-700">Dual-Confirmation:</span>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                    finderConfirmed
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    Finder: {finderConfirmed ? 'Signed ✓' : 'Pending'}
-                  </span>
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                    claimantConfirmed
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    Claimant: {claimantConfirmed ? 'Signed ✓' : 'Pending'}
-                  </span>
-                </div>
-              </div>
-
-              {!isCompleted ? (
-                <div>
-                  <button
-                    type="button"
-                    disabled={confirming}
-                    onClick={handleConfirm}
-                    className="w-full py-2.5 px-4 rounded-lg btn-gradient-indigo text-white text-xs font-semibold shadow-xs active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                  >
-                    <span className="material-symbols-outlined text-base">
-                      {userHasSigned ? 'verified' : 'check_circle'}
-                    </span>
-                    <span>
-                      {isAdmin
-                        ? 'Desk Officer Verify & Complete Handover'
-                        : isFinder
-                        ? (finderConfirmed ? 'Item Handed Over (Signed ✓)' : 'Confirm Item Handed Over')
-                        : (claimantConfirmed ? 'Item Received (Signed ✓)' : 'Confirm Item Received')}
-                    </span>
-                  </button>
-                  {userHasSigned && (
-                    <p className="text-[11px] text-emerald-600 text-center font-medium mt-1.5">
-                      ✓ Your sign-off is recorded. Waiting for second party to confirm.
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-800 text-center text-xs font-semibold flex items-center justify-center gap-1.5 border border-emerald-200">
-                  <span className="material-symbols-outlined text-base">verified</span>
-                  <span>Handover Complete. Chain of custody sealed.</span>
-                </div>
-              )}
-            </div>
-
           </div>
 
-        </div>
-
-        {/* RIGHT COLUMN: Handover Chat (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col h-[520px]">
-          
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-indigo-600 text-lg">forum</span>
-              <h3 className="text-xs sm:text-sm font-semibold text-slate-900">Coordination Chat</h3>
-            </div>
-            <span className="text-[11px] text-slate-400">Encrypted</span>
-          </div>
-
-          {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2.5 pr-0.5">
-            {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-xs">
-                <span className="material-symbols-outlined text-2xl mb-1 text-slate-300">chat_bubble_outline</span>
-                <span>No messages yet. Send a note below to coordinate!</span>
+          {/* Conversations List */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+            {filteredHandovers.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">
+                <span className="material-symbols-outlined text-3xl mb-1 text-slate-300">chat_bubble_outline</span>
+                <p className="font-medium text-slate-600">No conversations found</p>
+                <p className="text-[11px] text-slate-400 mt-1">Submit an ownership claim on the Live Feed to start a handover chat.</p>
               </div>
             ) : (
-              messages.map((m) => {
-                const isMe = m.sender_id === user?.id || (m.sender_name && user?.name && m.sender_name.toLowerCase().includes(user.name.toLowerCase()));
+              filteredHandovers.map((h) => {
+                const isActive = h.item_id === activeItemId;
+                const otherPartyName = user?.id === h.finder_id ? (h.claimant_name || 'Claimant') : (h.finder_name || 'Finder / Custodian');
+                const otherPartyAvatar = user?.id === h.finder_id ? h.claimant_avatar : h.finder_avatar;
+                const isItemCompleted = h.status === 'completed' || (h.finder_confirmed && h.claimant_confirmed);
+
+                const timeStr = h.last_message_time
+                  ? new Date(h.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : '';
+
                 return (
-                  <div
-                    key={m.id}
-                    className={`flex flex-col max-w-[82%] ${
-                      isMe ? 'self-end items-end' : 'self-start items-start'
+                  <button
+                    key={h.id}
+                    onClick={() => {
+                      setActiveItemId(h.item_id);
+                      setShowMobileChatView(true);
+                    }}
+                    className={`w-full p-3.5 text-left transition-all flex items-start gap-3 cursor-pointer ${
+                      isActive
+                        ? 'bg-indigo-50/90 border-l-4 border-indigo-600 shadow-xs'
+                        : 'hover:bg-slate-100/70 bg-white'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-0.5">
-                      <span className="font-medium text-slate-600">
-                        {m.sender_name || (isMe ? 'You' : 'Classmate')}
+                    {/* Avatar */}
+                    <div className="relative shrink-0">
+                      {otherPartyAvatar ? (
+                        <img
+                          src={otherPartyAvatar}
+                          alt={otherPartyName}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200/80"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-2xs">
+                          {otherPartyName.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-white ${
+                        isItemCompleted ? 'bg-emerald-500' : 'bg-indigo-500 animate-pulse'
+                      }`}></span>
+                    </div>
+
+                    {/* Chat Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1 mb-0.5">
+                        <h4 className={`text-xs font-semibold truncate ${isActive ? 'text-indigo-950 font-bold' : 'text-slate-900'}`}>
+                          {otherPartyName}
+                        </h4>
+                        <span className="text-[10px] text-slate-400 shrink-0 font-medium">{timeStr}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-100 truncate">
+                          #{h.item_id}
+                        </span>
+                        <span className="text-[11px] text-slate-600 font-medium truncate">
+                          {h.item_title}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-slate-500 truncate line-clamp-1">
+                        {h.last_sender ? `${h.last_sender.split(' ')[0]}: ` : ''}{h.last_message || 'Handover session initiated'}
+                      </p>
+                    </div>
+
+                    {/* Status Pill */}
+                    <div className="shrink-0 pt-0.5">
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+                        isItemCompleted
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-indigo-100 text-indigo-800'
+                      }`}>
+                        {isItemCompleted ? '✓ Done' : 'Active'}
                       </span>
-                      <span>•</span>
-                      <span>{new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <div
-                      className={`p-3 rounded-xl text-xs leading-relaxed ${
-                        isMe
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : m.is_staff || m.sender_role === 'admin'
-                          ? 'bg-purple-50 border border-purple-200 text-purple-950 font-medium'
-                          : 'bg-slate-100 text-slate-800'
-                      }`}
-                    >
-                      {m.text || m.message}
-                    </div>
-                  </div>
+                  </button>
                 );
               })
             )}
-            <div ref={messagesEndRef} />
           </div>
+        </div>
 
-          {/* Quick Coordination Chips */}
-          <div className="py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            {quickChips.map((chip, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={(e) => handleSendMessage(e, chip)}
-                className="shrink-0 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium border border-slate-200/60 transition-colors cursor-pointer"
+        {/* ========================================================= */}
+        {/* RIGHT PANEL: MAIN ACTIVE CHAT WINDOW (8 cols desktop)     */}
+        {/* ========================================================= */}
+        <div className={`md:col-span-8 lg:col-span-8 flex flex-col h-full bg-white ${
+          !showMobileChatView ? 'hidden md:flex' : 'flex'
+        }`}>
+          
+          {loading && !handoverData ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+              <span className="material-symbols-outlined text-3xl text-indigo-600 animate-spin mb-2">sync</span>
+              <p className="text-xs font-semibold text-slate-600">Loading conversation history...</p>
+            </div>
+          ) : !handoverData ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+              <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">chat</span>
+              <p className="text-sm font-semibold text-slate-700">Select a chat to begin messaging</p>
+            </div>
+          ) : (
+            <>
+              {/* CHAT HEADER BAR */}
+              <div className="px-4 py-3 border-b border-slate-200/80 bg-white flex items-center justify-between gap-3 shadow-2xs">
+                
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Mobile Back to List Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMobileChatView(false)}
+                    className="md:hidden p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs cursor-pointer shrink-0"
+                    title="Back to conversation list"
+                  >
+                    <span className="material-symbols-outlined text-base">arrow_back</span>
+                  </button>
+
+                  {/* Partner Avatar */}
+                  <img
+                    src={partnerAvatar}
+                    alt={partnerName}
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/20 shrink-0"
+                  />
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                        {partnerName}
+                      </h3>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 shrink-0">
+                        {partnerRoleLabel}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+                      <span className="font-semibold text-slate-700">Item:</span> {handoverData?.item?.title} 
+                      <span className="font-mono text-indigo-600 font-bold">(#{handoverData?.item?.id || activeItemId})</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Header Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowHandoverDetails(!showHandoverDetails)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                      showHandoverDetails
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                    }`}
+                    title="Toggle Handover Checkpoint & QR Code Details"
+                  >
+                    <span className="material-symbols-outlined text-sm">verified</span>
+                    <span className="hidden sm:inline">{showHandoverDetails ? 'Hide Checkpoint' : 'View Checkpoint & QR'}</span>
+                  </button>
+
+                  <span className={`px-2 py-1 rounded-md text-[11px] font-semibold ${
+                    isCompleted
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                  }`}>
+                    {isCompleted ? '✓ Completed' : 'Active'}
+                  </span>
+                </div>
+
+              </div>
+
+              {/* COLLAPSIBLE HANDOVER DETAILS & DUAL SIGN-OFF DRAWER */}
+              {showHandoverDetails && (
+                <div className="p-3.5 bg-slate-50/90 border-b border-slate-200/80 animate-in fade-in duration-200 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    
+                    {/* Location Info */}
+                    <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-xs flex items-start gap-2 shadow-2xs">
+                      <span className="material-symbols-outlined text-indigo-600 text-base mt-0.5">location_on</span>
+                      <div className="min-w-0">
+                        <span className="font-bold text-slate-800 block text-[11px]">Safe Meeting Point</span>
+                        <p className="text-slate-600 text-[11px] truncate">
+                          {handoverData?.handover?.location_name || 'Cabot Science Library Circulation Desk'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* QR Token */}
+                    <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-xs flex items-center justify-between shadow-2xs">
+                      <div className="min-w-0">
+                        <span className="font-bold text-slate-800 block text-[11px]">Verification QR Token</span>
+                        <span className="font-mono text-[11px] font-bold text-indigo-600 truncate block">
+                          {handoverData?.handover?.qr_code_token || 'RETRACE_QR_8842CABOT'}
+                        </span>
+                      </div>
+                      <span className="material-symbols-outlined text-slate-400 text-xl">qr_code_2</span>
+                    </div>
+
+                    {/* Dual Confirmation Status */}
+                    <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-xs flex flex-col justify-between shadow-2xs">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-slate-800">Dual Sign-off:</span>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${finderConfirmed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
+                            Finder {finderConfirmed ? '✓' : ''}
+                          </span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${claimantConfirmed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
+                            Claimant {claimantConfirmed ? '✓' : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {!isCompleted ? (
+                        <button
+                          type="button"
+                          disabled={confirming}
+                          onClick={handleConfirm}
+                          className="mt-1.5 w-full py-1 px-2 rounded-md btn-gradient-indigo text-white text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 disabled:opacity-50"
+                        >
+                          <span className="material-symbols-outlined text-xs">
+                            {userHasSigned ? 'verified' : 'check_circle'}
+                          </span>
+                          <span>
+                            {isAdmin
+                              ? 'Desk Officer Complete'
+                              : isFinder
+                              ? (finderConfirmed ? 'Signed ✓' : 'Confirm Handed Over')
+                              : (claimantConfirmed ? 'Signed ✓' : 'Confirm Received')}
+                          </span>
+                        </button>
+                      ) : (
+                        <span className="mt-1 text-[10px] text-emerald-700 font-bold text-center block bg-emerald-50 py-0.5 rounded border border-emerald-200">
+                          ✓ Chain of Custody Sealed
+                        </span>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* MESSAGES FEED AREA WITH SMART SCROLL */}
+              <div
+                ref={chatContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto p-4 space-y-3 relative bg-[#fdfdfd]"
               >
-                + {chip}
-              </button>
-            ))}
-          </div>
+                {messages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs">
+                    <span className="material-symbols-outlined text-3xl mb-1 text-slate-300">chat_bubble_outline</span>
+                    <p className="font-medium text-slate-600">No messages exchanged yet.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Send a note below to coordinate physical pickup at the safe zone.</p>
+                  </div>
+                ) : (
+                  messages.map((m) => {
+                    const isMe = m.sender_id === user?.id || (m.sender_name && user?.name && m.sender_name.toLowerCase().includes(user.name.toLowerCase()));
+                    return (
+                      <div
+                        key={m.id}
+                        className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${
+                          isMe ? 'self-end items-end ml-auto' : 'self-start items-start mr-auto'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-0.5">
+                          <span className="font-semibold text-slate-700">
+                            {m.sender_name || (isMe ? 'You' : 'Classmate')}
+                          </span>
+                          <span>•</span>
+                          <span>{new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
 
-          {/* Chat Input */}
-          <form onSubmit={handleSendMessage} className="pt-2 border-t border-slate-100 flex items-center gap-2">
-            <input
-              type="text"
-              value={newMsg}
-              onChange={(e) => setNewMsg(e.target.value)}
-              placeholder="Send coordination message..."
-              className="flex-1 px-3.5 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500"
-            />
-            <button
-              type="submit"
-              disabled={!newMsg.trim()}
-              className="p-2 rounded-lg btn-gradient-indigo text-white shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center disabled:opacity-40"
-            >
-              <span className="material-symbols-outlined text-base">send</span>
-            </button>
-          </form>
+                        <div
+                          className={`p-3 rounded-2xl text-xs leading-relaxed shadow-2xs ${
+                            isMe
+                              ? 'bg-indigo-600 text-white rounded-tr-none'
+                              : m.is_staff || m.sender_role === 'admin'
+                              ? 'bg-purple-50 border border-purple-200 text-purple-950 font-medium rounded-tl-none'
+                              : 'bg-slate-100 border border-slate-200/60 text-slate-900 rounded-tl-none'
+                          }`}
+                        >
+                          {m.text || m.message}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+
+                {/* Floating "New Messages" scroll pill */}
+                {showUnreadPill && (
+                  <div className="sticky bottom-2 inset-x-0 flex justify-center pointer-events-none z-20">
+                    <button
+                      type="button"
+                      onClick={() => scrollToBottom(true)}
+                      className="pointer-events-auto px-3 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg text-xs font-semibold flex items-center gap-1.5 transition-all animate-bounce cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-sm">arrow_downward</span>
+                      <span>New messages below</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* QUICK COORDINATION CHIPS */}
+              <div className="px-3 py-2 bg-slate-50 border-t border-slate-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {quickChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => handleSendMessage(e, chip)}
+                    className="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 text-slate-700 text-[11px] font-medium border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+
+              {/* CHAT INPUT FORM */}
+              <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200/80 bg-white flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newMsg}
+                  onChange={(e) => setNewMsg(e.target.value)}
+                  placeholder="Type coordination message..."
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={!newMsg.trim()}
+                  className="p-2.5 rounded-xl btn-gradient-indigo text-white shadow-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center disabled:opacity-40"
+                  title="Send Message"
+                >
+                  <span className="material-symbols-outlined text-base">send</span>
+                </button>
+              </form>
+            </>
+          )}
 
         </div>
 
@@ -510,4 +693,5 @@ export default function HandoverChatScreen({ activeItemId: initialItemId = 'REC-
     </div>
   );
 }
+
 

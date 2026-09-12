@@ -38,10 +38,27 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
   const [reward, setReward] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
 
-  // Verification challenge (Found only)
-  const [q1, setQ1] = useState('');
-  const [a1, setA1] = useState('');
+  // Dynamic Verification Challenges (Unlimited questions for found items)
+  const [securityQuestions, setSecurityQuestions] = useState([
+    { question: '', answer: '' }
+  ]);
   const [intakeSerial, setIntakeSerial] = useState('');
+
+  const handleAddQuestion = (presetQuestion = '') => {
+    setSecurityQuestions(prev => [...prev, { question: presetQuestion, answer: '' }]);
+  };
+
+  const handleRemoveQuestion = (indexToRemove) => {
+    setSecurityQuestions(prev => prev.filter((_, i) => i !== indexToRemove));
+  };
+
+  const handleUpdateQuestion = (idx, field, value) => {
+    setSecurityQuestions(prev => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], [field]: value };
+      return next;
+    });
+  };
 
   // Attached item photos
   const [photos, setPhotos] = useState([]);
@@ -143,6 +160,7 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
       const bObj = CAMPUS_BUILDINGS.find(b => b.name === building) || CAMPUS_BUILDINGS[0];
       const finalCategory = (category === 'Other' && customCategory.trim()) ? customCategory.trim() : category;
+      const validQuestions = securityQuestions.filter(sq => sq.question.trim() && sq.answer.trim());
 
       const payload = {
         type: itemType,
@@ -159,8 +177,8 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
         photos,
         reward_offered: itemType === 'lost' && reward.trim() ? reward.trim() : null,
         is_urgent: isUrgent,
-        verification_questions: itemType === 'found' && q1.trim() ? [q1.trim()] : [],
-        secret_answers: itemType === 'found' && a1.trim() ? [a1.trim()] : [],
+        verification_questions: itemType === 'found' ? validQuestions.map(sq => sq.question.trim()) : [],
+        secret_answers: itemType === 'found' ? validQuestions.map(sq => sq.answer.trim()) : [],
         intake_serial: itemType === 'found' && intakeSerial.trim() ? intakeSerial.trim() : null
       };
 
@@ -587,41 +605,119 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
               </div>
             </div>
 
-            {/* Secret Verification Question */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-3">
-              <div className="flex items-center gap-1.5 text-slate-800">
-                <span className="material-symbols-outlined text-base">help</span>
-                <span className="text-xs font-semibold">Secret Verification Question (Recommended)</span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Ask something only the true owner knows to confirm ownership.
-              </p>
+            {/* Secret Verification Challenges Builder (Unlimited Questions) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-indigo-50/40 border border-indigo-200/80 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-900">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                    <span className="material-symbols-outlined text-base">shield_lock</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                      Security Check Questions ({securityQuestions.length})
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Add as many secret questions as you like. Only the rightful owner who matches your answers can claim this item.
+                    </p>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                  Question (Shown to claimant)
-                </label>
-                <input
-                  type="text"
-                  value={q1}
-                  onChange={(e) => setQ1(e.target.value)}
-                  placeholder="e.g. What color is the case keychain or lockscreen?"
-                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                />
+                <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">
+                  Anti-Theft Active
+                </span>
               </div>
 
+              {/* Quick Preset Suggestion Chips */}
               <div>
-                <label className="block text-[11px] font-semibold text-indigo-700 mb-1">
-                  Secret Answer (Private, evaluated automatically)
-                </label>
-                <input
-                  type="text"
-                  value={a1}
-                  onChange={(e) => setA1(e.target.value)}
-                  placeholder="e.g. Red lanyard with initials MK"
-                  className="w-full px-3 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                />
+                <span className="text-[11px] font-semibold text-slate-600 block mb-1.5">
+                  Quick Suggestion Ideas:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    'Custom Bluetooth broadcast name',
+                    'Lock screen photo / wallpaper detail',
+                    'Initials, engravings, or case markings',
+                    'Stickers or keychain attached',
+                    'Exact items inside bag / wallet'
+                  ].map((presetText) => (
+                    <button
+                      key={presetText}
+                      type="button"
+                      onClick={() => handleAddQuestion(presetText)}
+                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                    >
+                      <span className="material-symbols-outlined text-xs">add</span>
+                      <span>{presetText}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* List of Dynamic Security Questions */}
+              <div className="flex flex-col gap-3">
+                {securityQuestions.map((sq, idx) => (
+                  <div 
+                    key={idx}
+                    className="p-3.5 rounded-xl bg-white border border-indigo-100 shadow-2xs flex flex-col gap-2.5 relative group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">
+                          {idx + 1}
+                        </span>
+                        <span>Security Check Question #{idx + 1}</span>
+                      </span>
+
+                      {securityQuestions.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveQuestion(idx)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Remove this security question"
+                        >
+                          <span className="material-symbols-outlined text-base">delete</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Question (Shown to claimant) *
+                      </label>
+                      <input
+                        type="text"
+                        value={sq.question}
+                        onChange={(e) => handleUpdateQuestion(idx, 'question', e.target.value)}
+                        placeholder="e.g. What specific custom name or engraving is on this item?"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-indigo-700 mb-1">
+                        Secret Answer (Evaluated securely on server — never revealed) *
+                      </label>
+                      <input
+                        type="text"
+                        value={sq.answer}
+                        onChange={(e) => handleUpdateQuestion(idx, 'answer', e.target.value)}
+                        placeholder="e.g. Red lanyard with initials MK"
+                        className="w-full px-3 py-2 rounded-xl bg-indigo-50/40 border border-indigo-200 text-xs text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Question Action */}
+              <button
+                type="button"
+                onClick={() => handleAddQuestion('')}
+                className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-50 text-indigo-700 border-2 border-dashed border-indigo-200 hover:border-indigo-400 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm font-bold">add_circle</span>
+                <span>+ Add Another Security Question</span>
+              </button>
             </div>
           </div>
         )}

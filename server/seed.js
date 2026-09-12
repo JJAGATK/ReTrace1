@@ -462,6 +462,125 @@ async function seedDatabase() {
   // Seed sample bookmark
   await db.run('INSERT INTO bookmarks (id, user_id, item_id) VALUES (?, ?, ?)', ['BMK-1', 'user-maya', 'REC-8843']);
 
+  // Create claim & handover for REC-8843 (MacBook Air) between Maya Lin (finder) and Julian Vance (owner)
+  await db.run(`
+    INSERT INTO claims (
+      id, item_id, claimant_id, claimant_name, claimant_email,
+      answers_json, proof_notes, proof_photo_url, serial_provided,
+      match_score, status, admin_notes, reviewed_by, reviewed_at, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `, [
+    'CLM-9913',
+    'REC-8843',
+    'user-julian',
+    'Julian Vance',
+    'julian.vance@harvard.edu',
+    JSON.stringify(['Stickers match Figma and GitHub']),
+    'Laptop has custom stickers and MagSafe scratch.',
+    null,
+    'MAC-AIR-M2-2024',
+    95,
+    'approved',
+    'Verified by student match',
+    'Officer Marcus Vance'
+  ]);
+
+  await db.run(`
+    INSERT INTO handovers (
+      id, item_id, claim_id, finder_id, claimant_id,
+      scheduled_time, location_name, exact_directions, qr_code_token, finder_confirmed, claimant_confirmed, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'scheduled')
+  `, [
+    'HO-8843',
+    'REC-8843',
+    'CLM-9913',
+    'user-maya',
+    'user-julian',
+    'Tomorrow 2:00 PM',
+    'Student Union Info Desk',
+    'Meet near cafe entrance desk.',
+    'VERIFIED_QR_8843UNION'
+  ]);
+
+  await db.run(`
+    INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    'MSG-3',
+    'HO-8843',
+    'REC-8843',
+    'user-maya',
+    'Maya Lin',
+    'student',
+    'Hi Julian! I spotted your laptop near the coffee station and notified the staff desk.'
+  ]);
+
+  await db.run(`
+    INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    'MSG-4',
+    'HO-8843',
+    'REC-8843',
+    'user-julian',
+    'Julian Vance',
+    'student',
+    'Awesome! Thank you so much Maya, that is a total lifesaver!'
+  ]);
+
+  // Create claim & handover for REC-8844 (Toyota Key Fob) between Maya Lin and Officer Marcus
+  await db.run(`
+    INSERT INTO claims (
+      id, item_id, claimant_id, claimant_name, claimant_email,
+      answers_json, proof_notes, proof_photo_url, serial_provided,
+      match_score, status, admin_notes, reviewed_by, reviewed_at, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `, [
+    'CLM-9914',
+    'REC-8844',
+    'user-admin',
+    'Officer Marcus Vance',
+    'm.vance@campus.harvard.edu',
+    JSON.stringify(['Crimson Gym #4419']),
+    'Verified membership tag number.',
+    null,
+    'TY-8841-K',
+    100,
+    'approved',
+    'Verified by Malkin desk manager',
+    'Officer Marcus Vance'
+  ]);
+
+  await db.run(`
+    INSERT INTO handovers (
+      id, item_id, claim_id, finder_id, claimant_id,
+      scheduled_time, location_name, exact_directions, qr_code_token, finder_confirmed, claimant_confirmed, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'completed')
+  `, [
+    'HO-8844',
+    'REC-8844',
+    'CLM-9914',
+    'user-maya',
+    'user-admin',
+    'Yesterday 4:00 PM',
+    'Malkin Rec Center Front Desk',
+    'Returned at equipment desk.',
+    'VERIFIED_QR_8844MALKIN'
+  ]);
+
+  await db.run(`
+    INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `, [
+    'MSG-5',
+    'HO-8844',
+    'REC-8844',
+    'user-admin',
+    'Officer Marcus Vance',
+    'admin',
+    'Key fob receipt verified and returned to owner. Dual signature recorded.'
+  ]);
+
   console.log('ReTrace Seed completed successfully!');
 }
 
