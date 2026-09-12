@@ -98,9 +98,9 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
         </div>
       </div>
 
-      {/* Mobile Floating Bottom Dock */}
+      {/* Mobile Floating Bottom Dock (5 perfectly balanced icons with elevated Center (+) action) */}
       <div className="fixed bottom-3 inset-x-0 z-50 px-4 md:hidden pointer-events-none">
-        <nav className="pointer-events-auto max-w-sm mx-auto h-14 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 shadow-lg flex items-center justify-around px-2">
+        <nav className="pointer-events-auto max-w-sm mx-auto h-14 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 shadow-lg flex items-center justify-between px-3">
           
           <button
             aria-label="Feed"
@@ -122,11 +122,11 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             <span className="material-symbols-outlined text-2xl">map</span>
           </button>
 
-          {/* Center (+) Action */}
+          {/* Symmetrical Center (+) Action */}
           <button
             aria-label="Report New Item"
             onClick={onOpenPostModal}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-indigo-600 text-white shadow-md active:scale-95 transition-transform tap-highlight-transparent -mt-3"
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-md active:scale-95 transition-transform tap-highlight-transparent -mt-3.5"
           >
             <span className="material-symbols-outlined text-2xl font-bold">add</span>
           </button>
@@ -151,19 +151,6 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             <span className="material-symbols-outlined text-2xl">chat_bubble</span>
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-2 ring-white"></span>
-            )}
-          </button>
-
-          <button
-            aria-label="Admin Claim Center"
-            onClick={() => setCurrentTab('admin')}
-            className={`relative flex flex-col items-center justify-center w-11 h-11 rounded-full tap-highlight-transparent transition-colors ${
-              currentTab === 'admin' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            <span className="material-symbols-outlined text-2xl">shield_person</span>
-            {user?.role === 'admin' && pendingCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
             )}
           </button>
         </nav>
