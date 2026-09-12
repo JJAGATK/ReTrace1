@@ -778,14 +778,39 @@ app.get('/api/handovers/:itemId/messages', authMiddleware, async (req, res) => {
 
 // Send message in handover session
 app.post('/api/handovers/:itemId/messages', authMiddleware, async (req, res) => {
-  const { text, handover_id } = req.body;
+  const text = req.body.text || req.body.message;
+  const { handover_id } = req.body;
   if (!text || !text.trim()) {
     return res.status(400).json({ error: 'Message text cannot be empty.' });
   }
 
-  const handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
-  const hId = handover_id || (handover ? handover.id : 'HO-DEFAULT');
+  let handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
+  if (!handover) {
+    const item = await db.get('SELECT * FROM items WHERE id = ?', [req.params.itemId]);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    const claim = await db.get('SELECT * FROM claims WHERE item_id = ? ORDER BY created_at DESC LIMIT 1', [req.params.itemId]);
+    const hId = 'HO-' + crypto.randomUUID().slice(0, 8);
+    const qrToken = 'VERIFIED_QR_' + crypto.randomBytes(6).toString('hex').toUpperCase();
+    await db.run(`
+      INSERT INTO handovers (
+        id, item_id, claim_id, finder_id, claimant_id,
+        scheduled_time, location_name, exact_directions, qr_code_token, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')
+    `, [
+      hId,
+      item.id,
+      claim ? claim.id : 'CLM-DIRECT',
+      item.user_id,
+      claim ? claim.claimant_id : req.user.id,
+      'Available for pickup & coordination',
+      item.custody_desk_name || 'Cabot Science Library Circulation Desk',
+      'Coordinate safe handoff details via this chat.',
+      qrToken
+    ]);
+    handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
+  }
 
+  const hId = handover_id || (handover ? handover.id : 'HO-' + crypto.randomUUID().slice(0, 8));
   const msgId = 'MSG-' + crypto.randomUUID().slice(0, 8);
   await db.run(`
     INSERT INTO handover_messages (id, handover_id, item_id, sender_id, sender_name, sender_role, text, created_at)
@@ -806,24 +831,51 @@ app.post('/api/handovers/:itemId/messages', authMiddleware, async (req, res) => 
 
 // Dual confirmation endpoint
 app.post('/api/handovers/:itemId/confirm', authMiddleware, async (req, res) => {
-  const handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
-  if (!handover) return res.status(404).json({ error: 'Handover record not found' });
-
-  const isFinder = req.user.id === handover.finder_id;
-  const isClaimant = req.user.id === handover.claimant_id;
-  const isAdmin = req.user.role === 'admin';
-
-  if (!isFinder && !isClaimant && !isAdmin) {
-    return res.status(403).json({ error: 'Not authorized for this item handover.' });
+  let handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
+  const item = await db.get('SELECT * FROM items WHERE id = ?', [req.params.itemId]);
+  
+  if (!handover) {
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    const claim = await db.get('SELECT * FROM claims WHERE item_id = ? ORDER BY created_at DESC LIMIT 1', [req.params.itemId]);
+    const hId = 'HO-' + crypto.randomUUID().slice(0, 8);
+    const qrToken = 'VERIFIED_QR_' + crypto.randomBytes(6).toString('hex').toUpperCase();
+    await db.run(`
+      INSERT INTO handovers (
+        id, item_id, claim_id, finder_id, claimant_id,
+        scheduled_time, location_name, exact_directions, qr_code_token, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')
+    `, [
+      hId,
+      item.id,
+      claim ? claim.id : 'CLM-DIRECT',
+      item.user_id,
+      claim ? claim.claimant_id : req.user.id,
+      'Available for pickup & coordination',
+      item.custody_desk_name || 'Cabot Science Library Circulation Desk',
+      'Coordinate safe handoff details via this chat.',
+      qrToken
+    ]);
+    handover = await db.get('SELECT * FROM handovers WHERE item_id = ?', [req.params.itemId]);
   }
 
-  let finderConfirmed = handover.finder_confirmed;
-  let claimantConfirmed = handover.claimant_confirmed;
+  // Determine user's role in this handover
+  const isFinder = req.user.id === handover.finder_id || (item && req.user.id === item.user_id);
+  const isClaimant = req.user.id === handover.claimant_id || (!isFinder && req.user.role !== 'admin');
+  const isAdmin = req.user.role === 'admin';
 
-  if (isFinder || isAdmin) finderConfirmed = 1;
-  if (isClaimant || isAdmin) claimantConfirmed = 1;
+  let finderConfirmed = Number(handover.finder_confirmed) || 0;
+  let claimantConfirmed = Number(handover.claimant_confirmed) || 0;
 
-  const isFullyCompleted = finderConfirmed === 1 && claimantConfirmed === 1;
+  if (isAdmin) {
+    finderConfirmed = 1;
+    claimantConfirmed = 1;
+  } else if (isFinder) {
+    finderConfirmed = 1;
+  } else if (isClaimant) {
+    claimantConfirmed = 1;
+  }
+
+  const isFullyCompleted = (finderConfirmed === 1 && claimantConfirmed === 1) || isAdmin;
 
   await db.run(`
     UPDATE handovers 
@@ -840,12 +892,13 @@ app.post('/api/handovers/:itemId/confirm', authMiddleware, async (req, res) => {
   if (isFullyCompleted) {
     await db.run("UPDATE items SET status = 'returned', custody_status = 'with_claimant' WHERE id = ?", [handover.item_id]);
 
-    await db.run('UPDATE users SET trust_score = LEAST(100, trust_score + 2), returns_count = returns_count + 1 WHERE id = ?', [handover.finder_id]).catch(() => {
-      db.run('UPDATE users SET trust_score = MIN(100, trust_score + 2), returns_count = returns_count + 1 WHERE id = ?', [handover.finder_id]);
-    });
-    await db.run('UPDATE users SET trust_score = LEAST(100, trust_score + 1) WHERE id = ?', [handover.claimant_id]).catch(() => {
-      db.run('UPDATE users SET trust_score = MIN(100, trust_score + 1) WHERE id = ?', [handover.claimant_id]);
-    });
+    // Standard SQL compliant with both SQLite and Postgres
+    if (handover.finder_id) {
+      await db.run('UPDATE users SET trust_score = (CASE WHEN trust_score + 2 > 100 THEN 100 ELSE trust_score + 2 END), returns_count = returns_count + 1 WHERE id = ?', [handover.finder_id]);
+    }
+    if (handover.claimant_id) {
+      await db.run('UPDATE users SET trust_score = (CASE WHEN trust_score + 1 > 100 THEN 100 ELSE trust_score + 1 END) WHERE id = ?', [handover.claimant_id]);
+    }
 
     await recordCustodyLog(
       handover.item_id,
@@ -868,7 +921,11 @@ app.post('/api/handovers/:itemId/confirm', authMiddleware, async (req, res) => {
     success: true,
     isFullyCompleted,
     finderConfirmed: Boolean(finderConfirmed),
-    claimantConfirmed: Boolean(claimantConfirmed)
+    claimantConfirmed: Boolean(claimantConfirmed),
+    status: isFullyCompleted ? 'completed' : 'scheduled',
+    message: isFullyCompleted
+      ? 'Dual confirmation complete! Item safely returned and chain of custody closed.'
+      : 'Sign-off recorded! Awaiting second party confirmation.'
   });
 });
 

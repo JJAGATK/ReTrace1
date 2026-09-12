@@ -67,30 +67,30 @@ export default function LoginModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#1a1b25]/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-indigo-200/80 flex flex-col gap-4">
+    <div className="fixed inset-0 z-50 bg-[#1a1b25]/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-md bg-white dark:bg-[#141524] rounded-3xl p-6 sm:p-7 shadow-2xl border border-indigo-200/80 dark:border-indigo-800/80 flex flex-col gap-4 text-[#1a1b25] dark:text-white">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+        <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/60 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#4648d4] to-[#8455ef] flex items-center justify-center text-white font-bold shadow-md shadow-indigo-500/20">
               <span className="material-symbols-outlined text-xl">account_balance</span>
             </div>
             <div>
-              <h3 className="font-bold text-base text-[#1a1b25]">Campus Single Sign-On</h3>
-              <p className="text-[11px] text-slate-400">ReTrace University Hub</p>
+              <h3 className="font-bold text-base text-[#1a1b25] dark:text-white">Campus Single Sign-On</h3>
+              <p className="text-[11px] text-slate-400 dark:text-slate-400">ReTrace University Hub</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
 
         {/* Info */}
-        <p className="text-xs text-[#464554] leading-relaxed">
+        <p className="text-xs text-[#464554] dark:text-slate-300 leading-relaxed">
           Log in with your official university credentials to claim items, coordinate safe-zone handoffs, or report items found on campus.
         </p>
 
@@ -98,7 +98,7 @@ export default function LoginModal({ isOpen, onClose }) {
         {step === 'request' ? (
           <form onSubmit={handleRequestOtp} className="flex flex-col gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#1a1b25] mb-1">
+              <label className="block text-xs font-semibold text-[#1a1b25] dark:text-slate-200 mb-1">
                 University Email (.edu only)
               </label>
               <input
@@ -107,12 +107,12 @@ export default function LoginModal({ isOpen, onClose }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="student.id@harvard.edu"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 text-xs text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-xs text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
               />
             </div>
 
             {feedback && (
-              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-medium text-rose-700">
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs font-medium text-rose-700 dark:text-rose-300">
                 {feedback}
               </div>
             )}
@@ -129,14 +129,14 @@ export default function LoginModal({ isOpen, onClose }) {
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-3">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-semibold text-[#1a1b25]">
+                <label className="text-xs font-semibold text-[#1a1b25] dark:text-slate-200">
                   Enter 6-Digit OTP Code
                 </label>
                 {demoCode && (
                   <button
                     type="button"
                     onClick={() => setOtpCode(demoCode)}
-                    className="text-[10px] text-[#4648d4] font-bold underline cursor-pointer"
+                    className="text-[10px] text-[#4648d4] dark:text-indigo-400 font-bold underline cursor-pointer"
                   >
                     Use Demo Code: {demoCode}
                   </button>
@@ -149,12 +149,12 @@ export default function LoginModal({ isOpen, onClose }) {
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value)}
                 placeholder="441920"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 text-center tracking-widest text-base font-mono text-[#1a1b25] border border-indigo-200/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-indigo-50/40 dark:bg-[#1e2034] text-center tracking-widest text-base font-mono text-[#1a1b25] dark:text-white border border-indigo-200/70 dark:border-indigo-800/70 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
               />
             </div>
 
             {feedback && (
-              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-medium text-emerald-800">
+              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-emerald-800 dark:text-emerald-300">
                 {feedback}
               </div>
             )}
@@ -163,7 +163,7 @@ export default function LoginModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => setStep('request')}
-                className="flex-1 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-[#1a1b25] text-xs font-semibold cursor-pointer"
+                className="flex-1 py-2.5 rounded-full bg-slate-100 dark:bg-[#1e2034] hover:bg-slate-200 dark:hover:bg-[#282b45] text-[#1a1b25] dark:text-slate-200 text-xs font-semibold cursor-pointer"
               >
                 Back
               </button>
@@ -179,29 +179,29 @@ export default function LoginModal({ isOpen, onClose }) {
         )}
 
         {/* Quick Demo Personas */}
-        <div className="border-t border-indigo-100 pt-3">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2 text-center">
+        <div className="border-t border-indigo-100 dark:border-indigo-900/60 pt-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 block mb-2 text-center">
             Or Click to Switch Instant Persona
           </span>
           <div className="grid grid-cols-3 gap-1.5">
             <button
               type="button"
               onClick={() => { switchPersona('user-maya'); onClose(); }}
-              className="p-2 rounded-xl bg-indigo-50/60 hover:bg-indigo-100 text-center text-xs font-bold text-[#4648d4] border border-indigo-100 cursor-pointer"
+              className="p-2 rounded-xl bg-indigo-50/60 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 text-center text-xs font-bold text-[#4648d4] dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 cursor-pointer"
             >
               Maya (Finder)
             </button>
             <button
               type="button"
               onClick={() => { switchPersona('user-julian'); onClose(); }}
-              className="p-2 rounded-xl bg-indigo-50/60 hover:bg-indigo-100 text-center text-xs font-bold text-[#F43F5E] border border-indigo-100 cursor-pointer"
+              className="p-2 rounded-xl bg-indigo-50/60 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 text-center text-xs font-bold text-[#F43F5E] dark:text-rose-400 border border-indigo-100 dark:border-indigo-800 cursor-pointer"
             >
               Julian (Claimant)
             </button>
             <button
               type="button"
               onClick={() => { switchPersona('user-admin'); onClose(); }}
-              className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-center text-xs font-bold text-purple-700 border border-purple-200 cursor-pointer"
+              className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-900/60 text-center text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 cursor-pointer"
             >
               Officer (Admin)
             </button>
