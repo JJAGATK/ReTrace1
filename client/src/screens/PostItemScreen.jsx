@@ -11,15 +11,15 @@ const CAMPUS_BUILDINGS = [
 ];
 
 const ITEM_CATEGORIES = [
-  { id: 'Tech & Audio', icon: 'headphones' },
-  { id: 'Campus IDs', icon: 'badge' },
-  { id: 'Bags & Wallets', icon: 'backpack' },
-  { id: 'Keys & Dorm', icon: 'key' },
-  { id: 'Jackets & Gear', icon: 'apparel' },
-  { id: 'Bottles & Mugs', icon: 'water_bottle' },
-  { id: 'Books & Notes', icon: 'menu_book' },
-  { id: 'Eyewear', icon: 'qr_code_2' },
-  { id: 'Other', icon: 'category' },
+  { id: 'Tech & Audio', label: 'Tech & Audio', icon: 'headphones' },
+  { id: 'Campus IDs', label: 'IDs & Cards', icon: 'badge' },
+  { id: 'Bags & Wallets', label: 'Bags & Wallets', icon: 'backpack' },
+  { id: 'Keys & Dorm', label: 'Keys & Dorm', icon: 'key' },
+  { id: 'Apparel', label: 'Apparel / Clothes', icon: 'apparel' },
+  { id: 'Bottles & Mugs', label: 'Bottles & Mugs', icon: 'water_bottle' },
+  { id: 'Books & Notes', label: 'Books & Notes', icon: 'menu_book' },
+  { id: 'Eyewear', label: 'Glasses / Eyewear', icon: 'visibility' },
+  { id: 'Other', label: 'Other Items', icon: 'category' },
 ];
 
 export default function PostItemScreen({ onPostCreated, onCancel }) {
@@ -34,15 +34,13 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
   const [floorRoom, setFloorRoom] = useState('');
   const [description, setDescription] = useState('');
   const [custodyType, setCustodyType] = useState('official_desk');
-  const [custodyDeskName, setCustodyDeskName] = useState('Cabot Circulation Desk (Staff ID: #L-89)');
+  const [custodyDeskName, setCustodyDeskName] = useState('Cabot Circulation Desk');
   const [reward, setReward] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
 
   // Verification challenge (Found only)
-  const [q1, setQ1] = useState('What specific custom Bluetooth name broadcasts when opening the lid?');
+  const [q1, setQ1] = useState('');
   const [a1, setA1] = useState('');
-  const [q2, setQ2] = useState('What color or initials are on the silicone lanyard string or case hinge?');
-  const [a2, setA2] = useState('');
   const [intakeSerial, setIntakeSerial] = useState('');
 
   // Attached item photos
@@ -108,13 +106,13 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (!title) {
-      setFeedback('Please provide an item title.');
+    if (!title.trim()) {
+      setFeedback('Please provide an item name.');
       return;
     }
 
     setSubmitting(true);
-    setFeedback('Matching Quad Beacons & Encrypting PII...');
+    setFeedback('Posting item...');
 
     try {
       let activeToken = token;
@@ -137,22 +135,22 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
 
       const payload = {
         type: itemType,
-        title,
+        title: title.trim(),
         category: finalCategory,
-        description,
+        description: description.trim(),
         coarse_location: building,
-        floor_room: floorRoom,
+        floor_room: floorRoom.trim(),
         latitude: bObj.lat,
         longitude: bObj.lng,
-        exact_location_notes: `${building}, ${floorRoom}`,
+        exact_location_notes: `${building}, ${floorRoom}`.trim(),
         custody_type: custodyType,
         custody_desk_name: custodyType === 'official_desk' ? custodyDeskName : 'Safe Self-Custody with Finder',
         photos,
-        reward_offered: itemType === 'lost' ? reward : null,
+        reward_offered: itemType === 'lost' && reward.trim() ? reward.trim() : null,
         is_urgent: isUrgent,
-        verification_questions: itemType === 'found' ? [q1, q2].filter(Boolean) : [],
-        secret_answers: itemType === 'found' ? [a1, a2].filter(Boolean) : [],
-        intake_serial: itemType === 'found' ? intakeSerial : null
+        verification_questions: itemType === 'found' && q1.trim() ? [q1.trim()] : [],
+        secret_answers: itemType === 'found' && a1.trim() ? [a1.trim()] : [],
+        intake_serial: itemType === 'found' && intakeSerial.trim() ? intakeSerial.trim() : null
       };
 
       const res = await fetch('/api/items', {
@@ -165,103 +163,256 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
       });
 
       if (res.ok) {
-        setFeedback('✓ Alert Dispatched to Campus Commons!');
+        setFeedback('✓ Successfully posted!');
         setTimeout(() => {
           onPostCreated();
-        }, 1200);
+        }, 900);
       } else {
         const err = await res.json().catch(() => ({}));
-        setFeedback(err.error || 'Failed to submit report. Ensure the backend server is running on port 5000.');
+        setFeedback(err.error || 'Failed to submit post.');
         setSubmitting(false);
       }
     } catch (err) {
-      setFeedback('Network error. Ensure "npm run dev" is running from the root folder so both backend & frontend are active.');
+      setFeedback('Network error. Please try again.');
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28">
+    <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-6 pb-28 text-[#1a1b25]">
       
-      {/* Top Breadcrumb / Title Bar */}
+      {/* Top Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25]">
-            Post Campus Alert
+            Post Lost or Found Item
           </h1>
-          <p className="text-xs text-[#464554] mt-0.5">
-            Report an item found on campus or broadcast a lost item to the university network.
+          <p className="text-xs sm:text-sm text-[#464554] mt-0.5">
+            Quickly share what you found or report something you lost to get it back.
           </p>
         </div>
         {onCancel && (
           <button
+            type="button"
             onClick={onCancel}
-            className="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-[#1a1b25] text-xs font-semibold cursor-pointer"
+            className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-[#1a1b25] text-xs font-semibold cursor-pointer transition-colors"
           >
             Cancel
           </button>
         )}
       </div>
 
-      {/* Mode Switcher Tabs */}
-      <div className="glass-panel p-2 rounded-2xl mb-6 max-w-xl mx-auto flex gap-2 border border-indigo-100/80">
+      {/* Main Mode Toggle */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <button
           type="button"
           onClick={() => setItemType('found')}
-          className={`flex-1 p-3 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer ${
+          className={`p-4 rounded-2xl flex items-center gap-3 text-left transition-all border-2 cursor-pointer ${
             itemType === 'found'
-              ? 'bg-white text-[#1a1b25] border border-primary/20 shadow-md font-bold'
-              : 'text-[#464554] hover:bg-white/60'
+              ? 'bg-emerald-50/80 border-emerald-500 shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-600 text-xl">back_hand</span>
-            <div>
-              <div className="text-xs sm:text-sm">I Found an Item</div>
-              <div className="text-[10px] text-slate-400 font-normal">Add verification challenge</div>
-            </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            itemType === 'found' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500'
+          }`}>
+            <span className="material-symbols-outlined text-xl">back_hand</span>
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <div>
+            <div className="text-sm font-bold text-[#1a1b25]">I Found an Item</div>
+            <div className="text-xs text-slate-500">I want to return it to the owner</div>
+          </div>
         </button>
 
         <button
           type="button"
           onClick={() => setItemType('lost')}
-          className={`flex-1 p-3 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer ${
+          className={`p-4 rounded-2xl flex items-center gap-3 text-left transition-all border-2 cursor-pointer ${
             itemType === 'lost'
-              ? 'bg-white text-[#1a1b25] border border-primary/20 shadow-md font-bold'
-              : 'text-[#464554] hover:bg-white/60'
+              ? 'bg-rose-50/80 border-[#F43F5E] shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#F43F5E] text-xl">travel_explore</span>
-            <div>
-              <div className="text-xs sm:text-sm">I Lost an Item</div>
-              <div className="text-[10px] text-slate-400 font-normal">Broadcast to campus quads</div>
-            </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            itemType === 'lost' ? 'bg-[#F43F5E] text-white' : 'bg-slate-100 text-slate-500'
+          }`}>
+            <span className="material-symbols-outlined text-xl">travel_explore</span>
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-[#F43F5E]"></span>
+          <div>
+            <div className="text-sm font-bold text-[#1a1b25]">I Lost an Item</div>
+            <div className="text-xs text-slate-500">Ask campus classmates for help</div>
+          </div>
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         
-        {/* LEFT COLUMN: Photos & Location (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-5">
-          
-          {/* Photos Drop Well */}
-          <div className="glass-card rounded-2xl p-5 border border-indigo-100/70">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#4648d4] text-xl">center_focus_strong</span>
-                <h2 className="text-sm font-bold text-[#1a1b25]">Photos & AI Scan</h2>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">auto_awesome</span> Smart-Match V2.4
-              </span>
+        {/* SECTION 1: Item Details */}
+        <div className="glass-card rounded-2xl p-5 sm:p-6 border border-indigo-100 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-3">
+            <span className="w-6 h-6 rounded-full bg-indigo-100 text-[#4648d4] text-xs font-bold flex items-center justify-center">
+              1
+            </span>
+            <h2 className="text-sm sm:text-base font-bold text-[#1a1b25]">
+              What is the item?
+            </h2>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+              Item Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={itemType === 'found' ? "e.g. Blue Hydro Flask, Apple AirPods Pro, Student ID Card" : "e.g. Matte Black MacBook Air M2, Brown Leather Wallet"}
+              className="w-full px-4 py-2.5 rounded-xl bg-white border border-indigo-200/80 text-sm text-[#1a1b25] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+            />
+          </div>
+
+          {/* Category Chips */}
+          <div>
+            <label className="block text-xs font-bold text-[#1a1b25] mb-2">
+              Category *
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {ITEM_CATEGORIES.map((cat) => {
+                const isSelected = category === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategory(cat.id)}
+                    className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border ${
+                      isSelected
+                        ? 'btn-gradient-indigo text-white border-transparent shadow-sm'
+                        : 'bg-indigo-50/40 hover:bg-indigo-50 text-[#464554] border-indigo-100/80'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-lg">{cat.icon}</span>
+                    <span className="truncate">{cat.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Hidden file input supporting multiple files */}
+            {category === 'Other' && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="Specify item category (e.g. Umbrella, Calculator, Jewelry...)"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+              Description (Optional)
+            </label>
+            <textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe color, brand, condition, or any distinctive marks..."
+              className="w-full px-4 py-2.5 rounded-xl bg-white border border-indigo-200/80 text-xs sm:text-sm text-[#1a1b25] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4648d4] resize-none leading-relaxed"
+            />
+          </div>
+
+          {/* Lost Item Specifics: Reward & Urgent */}
+          {itemType === 'lost' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-indigo-100">
+              <div>
+                <label className="block text-xs font-bold text-[#1a1b25] mb-1">
+                  Optional Reward / Bounty
+                </label>
+                <input
+                  type="text"
+                  value={reward}
+                  onChange={(e) => setReward(e.target.value)}
+                  placeholder="e.g. $20 Reward or Free Coffee"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-5">
+                <input
+                  type="checkbox"
+                  id="urgentCheck"
+                  checked={isUrgent}
+                  onChange={(e) => setIsUrgent(e.target.checked)}
+                  className="w-4 h-4 text-rose-600 rounded accent-rose-600 cursor-pointer"
+                />
+                <label htmlFor="urgentCheck" className="text-xs font-bold text-rose-600 cursor-pointer">
+                  Mark as Urgent (Need back immediately)
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 2: Location & Photos */}
+        <div className="glass-card rounded-2xl p-5 sm:p-6 border border-indigo-100 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-3">
+            <span className="w-6 h-6 rounded-full bg-indigo-100 text-[#4648d4] text-xs font-bold flex items-center justify-center">
+              2
+            </span>
+            <h2 className="text-sm sm:text-base font-bold text-[#1a1b25]">
+              {itemType === 'found' ? 'Where did you find it?' : 'Where did you lose it?'}
+            </h2>
+          </div>
+
+          {/* Campus Building Selector */}
+          <div>
+            <label className="block text-xs font-bold text-[#1a1b25] mb-2">
+              Campus Location *
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {CAMPUS_BUILDINGS.map((b) => (
+                <button
+                  key={b.name}
+                  type="button"
+                  onClick={() => setBuilding(b.name)}
+                  className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border ${
+                    building === b.name
+                      ? 'btn-gradient-indigo text-white border-transparent shadow-sm'
+                      : 'bg-indigo-50/40 hover:bg-indigo-50 text-[#464554] border-indigo-100/80'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-lg">{b.icon}</span>
+                  <span className="truncate">{b.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Specific Room / Area */}
+          <div>
+            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+              Specific Room or Spot (Optional)
+            </label>
+            <input
+              type="text"
+              value={floorRoom}
+              onChange={(e) => setFloorRoom(e.target.value)}
+              placeholder="e.g. 3rd Floor Carrel #42, Booth near cafe, Locker Room 102"
+              className="w-full px-4 py-2 rounded-xl bg-white border border-indigo-200/80 text-xs sm:text-sm text-[#1a1b25] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
+            />
+          </div>
+
+          {/* Photos Upload */}
+          <div className="pt-2 border-t border-indigo-100">
+            <label className="block text-xs font-bold text-[#1a1b25] mb-1.5">
+              Photos (Optional)
+            </label>
+
             <input
               type="file"
               ref={fileInputRef}
@@ -286,432 +437,171 @@ export default function PostItemScreen({ onPostCreated, onCancel }) {
                 setIsDragging(false);
                 handleFileSelect(e.dataTransfer.files);
               }}
-              className={`relative group rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-all ${
+              className={`rounded-2xl border-2 border-dashed p-4 sm:p-5 text-center cursor-pointer transition-all ${
                 isDragging
-                  ? 'bg-indigo-100/70 border-[#4648d4] scale-[1.01]'
-                  : 'bg-indigo-50/40 border-indigo-200/80 hover:bg-indigo-50/70'
+                  ? 'bg-indigo-100/80 border-[#4648d4]'
+                  : 'bg-indigo-50/40 border-indigo-200 hover:bg-indigo-50/80'
               }`}
             >
               <div className="flex flex-col items-center justify-center gap-1">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500/15 to-violet-500/15 text-[#4648d4] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-2xl">
-                    {uploadingFiles ? 'sync' : 'add_a_photo'}
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-[#1a1b25] mt-1">
-                  {uploadingFiles ? 'Uploading photos...' : 'Click to browse or drop photos here'}
+                <span className="material-symbols-outlined text-2xl sm:text-3xl text-[#4648d4]">
+                  {uploadingFiles ? 'sync' : 'add_a_photo'}
+                </span>
+                <p className="text-xs font-bold text-[#1a1b25]">
+                  {uploadingFiles ? 'Uploading photo...' : 'Click to upload or drag photos here'}
                 </p>
-                <p className="text-[11px] text-slate-400 max-w-xs">
-                  Upload multiple photos (front, serial label, unique marks). Saved locally to uploads.
+                <p className="text-[11px] text-slate-400">
+                  PNG, JPG or JPEG (take a photo with your phone)
                 </p>
               </div>
             </div>
 
-            {/* Preview Thumbnails */}
+            {/* Photo Previews */}
             {photos.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {photos.map((photoUrl, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden shadow-xs border border-indigo-100 group">
-                    <img src={photoUrl} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+              <div className="mt-3 flex flex-wrap gap-2">
+                {photos.map((url, idx) => (
+                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-indigo-200 group shadow-xs">
+                    <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemovePhoto(idx);
-                      }}
-                      title="Remove photo"
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-xs"
+                      onClick={() => handleRemovePhoto(idx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-xs"
+                      title="Remove"
                     >
                       <span className="material-symbols-outlined text-xs">close</span>
                     </button>
-                    <span className="absolute bottom-1 left-1 px-1.5 py-0.2 rounded bg-black/50 text-white text-[9px] font-bold">
-                      #{idx + 1}
-                    </span>
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square rounded-xl bg-indigo-50/30 border border-dashed border-indigo-200 hover:bg-indigo-50/60 flex flex-col items-center justify-center text-slate-400 hover:text-[#4648d4] transition-colors cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-xl">add</span>
-                  <span className="text-[10px]">Add more</span>
-                </button>
               </div>
             )}
-
-            {/* AI Auto-Tag Analysis Box */}
-            <div className="mt-3 p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-[#4648d4] text-lg shrink-0 mt-0.5">psychology</span>
-              <div className="text-xs flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#1a1b25]">Campus AI Match Engine</span>
-                  <span className="text-[10px] text-[#4648d4] font-bold">{photos.length > 0 ? 'Image Indexed' : 'Ready for Image'}</span>
-                </div>
-                <p className="text-[11px] text-[#464554] mt-0.5">
-                  {title ? (
-                    <>Categorizing: <strong>{title}</strong> under <strong>{category}</strong></>
-                  ) : (
-                    'Upload photos or enter an item title for campus auto-classification.'
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Discovery Location Card */}
-          <div className="glass-card rounded-2xl p-5 border border-indigo-100/70">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#4648d4] text-xl">map</span>
-                <h2 className="text-sm font-bold text-[#1a1b25]">Discovery Location</h2>
-              </div>
-              <span className="text-[11px] text-[#4648d4] font-semibold flex items-center gap-0.5">
-                <span className="material-symbols-outlined text-xs">my_location</span> Geofenced
-              </span>
-            </div>
-
-            {/* Building Quick Selector */}
-            <label className="block text-xs font-semibold text-[#464554] mb-1.5">
-              Select Campus Building
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {CAMPUS_BUILDINGS.map((b) => (
-                <button
-                  key={b.name}
-                  type="button"
-                  onClick={() => setBuilding(b.name)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
-                    building === b.name
-                      ? 'btn-gradient-indigo text-white shadow-xs'
-                      : 'bg-indigo-50/60 hover:bg-indigo-100 text-[#464554] border border-indigo-100'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-xs">{b.icon}</span>
-                  <span>{b.name}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Floor / Room Specification */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-[#464554]">
-                Specific Room / Carrel / Desk
-              </label>
-              <input
-                type="text"
-                value={floorRoom}
-                onChange={(e) => setFloorRoom(e.target.value)}
-                placeholder="e.g. 3rd Floor Carrel #42 (Near window)"
-                className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-100 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-              />
-            </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Specifications, Custody & Verification Challenge (7 Cols) */}
-        <div className="lg:col-span-7 flex flex-col gap-5">
-          
-          {/* Classification & Title */}
-          <div className="glass-card rounded-2xl p-5 border border-indigo-100/70">
-            <h2 className="text-sm font-bold text-[#1a1b25] mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[#4648d4] text-xl">category</span>
-              <span>Item Classification & Description</span>
-            </h2>
-
-            {/* Category Ribbon */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-2 mb-3">
-              {ITEM_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setCategory(cat.id)}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all cursor-pointer ${
-                    category === cat.id
-                      ? 'bg-gradient-to-br from-[#4648d4] to-[#6b38d4] text-white shadow-md shadow-indigo-500/20'
-                      : 'bg-indigo-50/40 hover:bg-indigo-50 text-[#464554] border border-indigo-100'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-xl mb-0.5">{cat.icon}</span>
-                  <span className="text-[11px] font-bold">{cat.id}</span>
-                </button>
-              ))}
+        {/* SECTION 3: Custody & Verification (Only for Found items) */}
+        {itemType === 'found' && (
+          <div className="glass-card rounded-2xl p-5 sm:p-6 border border-indigo-100 flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-indigo-100/70 pb-3">
+              <span className="w-6 h-6 rounded-full bg-indigo-100 text-[#4648d4] text-xs font-bold flex items-center justify-center">
+                3
+              </span>
+              <h2 className="text-sm sm:text-base font-bold text-[#1a1b25]">
+                Where is the item now & Owner Verification
+              </h2>
             </div>
 
-            {category === 'Other' && (
-              <div className="mb-4 p-3 rounded-xl bg-purple-50/60 border border-purple-200/80 animate-in fade-in">
-                <label className="block text-xs font-semibold text-purple-950 mb-1">
-                  Specify Category / Item Type (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                  placeholder="e.g. Umbrella, Musical Instrument, Calculator, Jewelry..."
-                  className="w-full px-3.5 py-1.5 rounded-lg bg-white border border-purple-200 text-xs font-medium text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-[#464554] mb-1">
-                  Item Title *
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Apple AirPods Pro (2nd Generation) in Blue Case"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-100 text-xs font-medium text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#464554] mb-1">
-                  Public Description (Do NOT include secret answers or private serials)
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={2}
-                  placeholder="Describe general appearance, visible stickers, where it was spotted..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-100 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
-                ></textarea>
-              </div>
-
-              {itemType === 'lost' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#464554] mb-1">
-                      Optional Student Bounty / Reward
-                    </label>
-                    <input
-                      type="text"
-                      value={reward}
-                      onChange={(e) => setReward(e.target.value)}
-                      placeholder="e.g. $50 Reward Offered"
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-100 text-xs text-[#1a1b25] focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 pt-5">
-                    <input
-                      type="checkbox"
-                      id="urgentCheck"
-                      checked={isUrgent}
-                      onChange={(e) => setIsUrgent(e.target.checked)}
-                      className="w-4 h-4 text-rose-600 rounded accent-rose-600"
-                    />
-                    <label htmlFor="urgentCheck" className="text-xs font-bold text-rose-600 cursor-pointer">
-                      Mark as Urgent Campus Broadcast
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Physical Custody Protocol */}
-          {itemType === 'found' && (
-            <div className="glass-card rounded-2xl p-5 border border-indigo-100/70">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[#6b38d4] text-xl">shield_person</span>
-                  <h2 className="text-sm font-bold text-[#1a1b25]">Physical Custody Protocol</h2>
-                </div>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">
-                  Quad Safety Standard
-                </span>
-              </div>
-              <p className="text-xs text-[#464554] mb-3">
-                Choose where the physical item is held while the owner is verified.
-              </p>
-
+            {/* Current Item Location Option */}
+            <div>
+              <label className="block text-xs font-bold text-[#1a1b25] mb-2">
+                Where is the item right now?
+              </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                
-                {/* Option A */}
-                <label 
+                <button
+                  type="button"
                   onClick={() => setCustodyType('official_desk')}
-                  className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
                     custodyType === 'official_desk'
-                      ? 'bg-indigo-50/70 border-[#4648d4] shadow-xs'
-                      : 'bg-white border-indigo-100 hover:bg-indigo-50/40'
+                      ? 'bg-indigo-50/80 border-[#4648d4] shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
+                  <span className="material-symbols-outlined text-xl text-[#4648d4]">desk</span>
                   <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1a1b25] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[#4648d4] text-base">desk</span>
-                        Official Desk Drop
-                      </span>
-                      <input
-                        type="radio"
-                        name="custody"
-                        checked={custodyType === 'official_desk'}
-                        onChange={() => setCustodyType('official_desk')}
-                        className="accent-[#4648d4]"
-                      />
-                    </div>
-                    <p className="text-[11px] text-[#464554] mt-1.5">
-                      Handed to staff at a verified campus lost & found desk counter.
-                    </p>
+                    <div className="text-xs font-bold text-[#1a1b25]">Turned into Campus Front Desk</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">e.g. Cabot Circulation Desk, Library staff</div>
                   </div>
-                  <div className="mt-2 pt-1 border-t border-indigo-100 text-[11px] font-semibold text-[#4648d4]">
-                    {custodyDeskName}
-                  </div>
-                </label>
+                </button>
 
-                {/* Option B */}
-                <label 
+                <button
+                  type="button"
                   onClick={() => setCustodyType('self_custody')}
-                  className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
                     custodyType === 'self_custody'
-                      ? 'bg-indigo-50/70 border-[#4648d4] shadow-xs'
-                      : 'bg-white border-indigo-100 hover:bg-indigo-50/40'
+                      ? 'bg-indigo-50/80 border-[#4648d4] shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
+                  <span className="material-symbols-outlined text-xl text-emerald-600">lock</span>
                   <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1a1b25] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-slate-500 text-base">lock</span>
-                        In My Safe Care
-                      </span>
-                      <input
-                        type="radio"
-                        name="custody"
-                        checked={custodyType === 'self_custody'}
-                        onChange={() => setCustodyType('self_custody')}
-                        className="accent-[#4648d4]"
-                      />
-                    </div>
-                    <p className="text-[11px] text-[#464554] mt-1.5">
-                      You retain possession and only hand it over at a marked CCTV Safe Zone upon admin approval.
-                    </p>
+                    <div className="text-xs font-bold text-[#1a1b25]">I Have It Safely With Me</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">I will hand it over once verified</div>
                   </div>
-                  <div className="mt-2 pt-1 border-t border-indigo-100 text-[11px] font-semibold text-slate-600">
-                    Safe Meeting Zone Handover
-                  </div>
-                </label>
-
+                </button>
               </div>
             </div>
-          )}
 
-          {/* Proof-of-Ownership Challenge (Feature 2 Core) */}
-          {itemType === 'found' && (
-            <div className="glass-card rounded-2xl p-5 border border-indigo-100/70">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-purple-600 text-xl">encrypted</span>
-                  <h2 className="text-sm font-bold text-[#1a1b25]">Proof-of-Ownership Challenge</h2>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
-                  Confidential
-                </span>
+            {/* Secret Verification Question */}
+            <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 flex flex-col gap-3">
+              <div className="flex items-center gap-1.5 text-[#4648d4]">
+                <span className="material-symbols-outlined text-lg">help</span>
+                <span className="text-xs font-bold">Secret Verification Question (Recommended)</span>
               </div>
-              <p className="text-xs text-[#464554] mb-3">
-                Claimants must correctly answer these questions before obtaining handover instructions. Secret answers are matched server-side and never displayed publicly.
+              <p className="text-xs text-[#464554]">
+                Ask something only the true owner would know to prove ownership (e.g., lock screen wallpaper, engraved initials, what is inside the bag).
               </p>
 
-              {/* Challenge 1 */}
-              <div className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-[#1a1b25] flex items-center gap-1">
-                    <span className="w-4 h-4 rounded-full bg-[#4648d4] text-white text-[10px] font-bold flex items-center justify-center">1</span>
-                    Verification Question (Shown to Claimant)
-                  </span>
-                </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#1a1b25] mb-1">
+                  Question (Shown to person claiming the item)
+                </label>
                 <input
                   type="text"
                   value={q1}
                   onChange={(e) => setQ1(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-indigo-100 text-xs text-[#1a1b25] focus:outline-none mb-2"
+                  placeholder="e.g. What color is the keychain? Or what is the lockscreen wallpaper?"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-xs text-[#1a1b25] focus:outline-none focus:ring-2 focus:ring-[#4648d4]"
                 />
+              </div>
 
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-[#6b38d4] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">key</span>
-                    Expected Secret Answer (Encrypted, Hidden from Public)
-                  </span>
-                </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#6b38d4] mb-1">
+                  Secret Answer (Kept private, evaluated automatically)
+                </label>
                 <input
                   type="text"
                   value={a1}
                   onChange={(e) => setA1(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-purple-200 text-xs text-purple-900 font-semibold focus:outline-none"
+                  placeholder="e.g. Red lanyard with initials MK"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-purple-200 text-xs text-purple-950 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/30"
                 />
               </div>
-
-              {/* Challenge 2 */}
-              <div className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-[#1a1b25] flex items-center gap-1">
-                    <span className="w-4 h-4 rounded-full bg-slate-400 text-white text-[10px] font-bold flex items-center justify-center">2</span>
-                    Secondary Question (Optional)
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  value={q2}
-                  onChange={(e) => setQ2(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-indigo-100 text-xs text-[#1a1b25] focus:outline-none mb-2"
-                />
-                <input
-                  type="text"
-                  value={a2}
-                  onChange={(e) => setA2(e.target.value)}
-                  placeholder="Expected secret answer 2"
-                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-purple-200 text-xs text-purple-900 font-semibold focus:outline-none"
-                />
-              </div>
-
-              {/* Intake Serial */}
-              <div>
-                <label className="block text-xs font-semibold text-[#464554] mb-1">
-                  Private Intake Serial / ID Number (Optional, for auto-match)
-                </label>
-                <input
-                  type="text"
-                  value={intakeSerial}
-                  onChange={(e) => setIntakeSerial(e.target.value)}
-                  placeholder="e.g. H9CGV42K01 or Student ID"
-                  className="w-full px-3 py-1.5 rounded-xl bg-white border border-indigo-100 text-xs font-mono text-[#1a1b25] focus:outline-none"
-                />
-                <span className="text-[10px] text-slate-400 mt-0.5 block">
-                  Encrypted with AES-256; checked when claimant enters a serial number.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Action Dock */}
-          <div className="glass-panel p-3 sm:p-4 rounded-full border border-indigo-200 flex items-center justify-between gap-3 shadow-lg shadow-indigo-500/10">
-            <div className="flex items-center gap-2 pl-2">
-              <span className="material-symbols-outlined text-[#4648d4] text-xl">satellite_alt</span>
-              <div className="text-xs">
-                <span className="font-bold text-[#1a1b25] block">Live Campus Matching Active</span>
-                <span className="text-[10px] text-slate-400">Push notification sent to Cabot desk & feeds</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {feedback && (
-                <span className="text-xs font-bold text-[#4648d4] px-2">{feedback}</span>
-              )}
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-5 py-2 rounded-full btn-gradient-indigo text-white text-xs font-bold active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-sm">
-                  {submitting ? 'sync' : 'broadcast_on_personal'}
-                </span>
-                <span>{itemType === 'found' ? 'Publish Campus Alert' : 'Broadcast Lost Report'}</span>
-              </button>
             </div>
           </div>
+        )}
 
+        {/* Submit Bar */}
+        <div className="glass-card rounded-2xl p-4 border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+          <div>
+            {feedback && (
+              <span className="text-xs font-bold text-[#4648d4]">{feedback}</span>
+            )}
+            {!feedback && (
+              <span className="text-xs text-slate-500">
+                {itemType === 'found' ? 'Your report will be immediately visible on the campus live feed.' : 'Classmates will be notified to help spot your item.'}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-[#1a1b25] cursor-pointer"
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 sm:flex-initial px-6 py-2.5 rounded-full btn-gradient-indigo text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-base">
+                {submitting ? 'sync' : 'send'}
+              </span>
+              <span>{itemType === 'found' ? 'Post Found Item' : 'Post Lost Item'}</span>
+            </button>
+          </div>
         </div>
 
       </form>

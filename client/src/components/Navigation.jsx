@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 
 export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0, onOpenPostModal }) {
   const { user } = useAuth();
+  const { unreadCount = 0 } = useNotifications() || {};
 
   return (
     <>
@@ -54,7 +56,7 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
 
             <button
               onClick={() => setCurrentTab('handover')}
-              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer relative ${
                 currentTab === 'handover'
                   ? 'bg-indigo-50 text-[#4648d4] font-bold border border-indigo-200/80 shadow-xs'
                   : 'hover:bg-indigo-50/70 hover:text-indigo-900'
@@ -62,6 +64,11 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
             >
               <span className="material-symbols-outlined text-sm">chat_bubble</span>
               <span>Handover & Chats</span>
+              {unreadCount > 0 && (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#4648d4] text-white text-[10px] font-bold flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
             </button>
 
             <button
@@ -115,11 +122,14 @@ export default function Navigation({ currentTab, setCurrentTab, pendingCount = 0
           <button
             aria-label="Handover Chat"
             onClick={() => setCurrentTab('handover')}
-            className={`flex flex-col items-center justify-center w-11 h-11 rounded-full tap-highlight-transparent transition-colors ${
+            className={`relative flex flex-col items-center justify-center w-11 h-11 rounded-full tap-highlight-transparent transition-colors ${
               currentTab === 'handover' ? 'text-[#4648d4]' : 'text-slate-400 hover:text-[#1a1b25]'
             }`}
           >
             <span className="material-symbols-outlined text-2xl">chat_bubble</span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-[#4648d4] ring-2 ring-white"></span>
+            )}
           </button>
 
           <button

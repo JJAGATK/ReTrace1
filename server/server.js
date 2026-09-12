@@ -1131,40 +1131,46 @@ app.get('/api/stats', async (req, res) => {
   const returnedRow = await db.get("SELECT COUNT(*) as c FROM items WHERE status = 'returned'");
   const pendingRow = await db.get("SELECT COUNT(*) as c FROM claims WHERE status IN ('admin_review', 'submitted')");
 
+  const standardCategories = ['Tech & Audio', 'Bags & Wallets', 'Campus IDs', 'Keys & Dorm', 'Bottles & Mugs', 'Apparel', 'Books & Notes', 'Eyewear'];
+
+  function normalizeCategoryCounts(rows) {
+    const counts = {};
+    standardCategories.forEach(cat => { counts[cat] = 0; });
+    counts['Other'] = 0;
+
+    rows.forEach(r => {
+      const cat = r.category;
+      const count = Number(r.count) || 0;
+      if (cat === 'Apparel' || cat === 'Jackets & Gear') {
+        counts['Apparel'] = (counts['Apparel'] || 0) + count;
+      } else if (standardCategories.includes(cat)) {
+        counts[cat] = (counts[cat] || 0) + count;
+      } else {
+        counts['Other'] = (counts['Other'] || 0) + count;
+      }
+    });
+    return counts;
+  }
+
   // Active category counts (status != 'returned')
   const activeCatRows = await db.all("SELECT category, COUNT(*) as count FROM items WHERE status != 'returned' GROUP BY category");
-  const categoryCounts = {};
-  activeCatRows.forEach(r => {
-    categoryCounts[r.category] = Number(r.count);
-  });
+  const categoryCounts = normalizeCategoryCounts(activeCatRows);
 
-  // Total category counts (including returned)
+  // Total category counts (all items including returned)
   const totalCatRows = await db.all('SELECT category, COUNT(*) as count FROM items GROUP BY category');
-  const totalCategoryCounts = {};
-  totalCatRows.forEach(r => {
-    totalCategoryCounts[r.category] = Number(r.count);
-  });
+  const totalCategoryCounts = normalizeCategoryCounts(totalCatRows);
 
   // Lost category counts
   const lostCatRows = await db.all("SELECT category, COUNT(*) as count FROM items WHERE type = 'lost' AND status != 'returned' GROUP BY category");
-  const lostCategoryCounts = {};
-  lostCatRows.forEach(r => {
-    lostCategoryCounts[r.category] = Number(r.count);
-  });
+  const lostCategoryCounts = normalizeCategoryCounts(lostCatRows);
 
   // Found category counts
   const foundCatRows = await db.all("SELECT category, COUNT(*) as count FROM items WHERE type = 'found' AND status != 'returned' GROUP BY category");
-  const foundCategoryCounts = {};
-  foundCatRows.forEach(r => {
-    foundCategoryCounts[r.category] = Number(r.count);
-  });
+  const foundCategoryCounts = normalizeCategoryCounts(foundCatRows);
 
   // Returned category counts
   const returnedCatRows = await db.all("SELECT category, COUNT(*) as count FROM items WHERE status = 'returned' GROUP BY category");
-  const returnedCategoryCounts = {};
-  returnedCatRows.forEach(r => {
-    returnedCategoryCounts[r.category] = Number(r.count);
-  });
+  const returnedCategoryCounts = normalizeCategoryCounts(returnedCatRows);
 
   res.json({
     total: Number(totalRow.c),
@@ -1179,6 +1185,158 @@ app.get('/api/stats', async (req, res) => {
     foundCategoryCounts,
     returnedCategoryCounts
   });
+});
+
+// Notifications API
+const readNotificationIds = new Set();
+
+app.get('/api/notifications', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  const notifications = [];
+
+  try {
+    // 1. Handover Messages from other users
+    let messageQuery = `
+      SELECT m.*, i.title as item_title, i.photos_json, h.item_id as h_item_id
+      FROM handover_messages m
+      JOIN handovers h ON m.handover_id = h.id
+      JOIN items i ON m.item_id = i.id
+      WHERE m.sender_id != ?
+    `;
+    const messageParams = [userId];
+
+    if (!isAdmin) {
+      messageQuery += ' AND (h.finder_id = ? OR h.claimant_id = ? OR i.user_id = ?)';
+      messageParams.push(userId, userId, userId);
+    }
+    messageQuery += ' ORDER BY m.created_at DESC LIMIT 20';
+
+    const recentMessages = await db.all(messageQuery, messageParams);
+    recentMessages.forEach(m => {
+      let photos = [];
+      try { photos = JSON.parse(m.photos_json); } catch (e) {}
+      notifications.push({
+        id: `msg-${m.id}`,
+        rawId: m.id,
+        type: 'message',
+        title: `Message from ${m.sender_name}`,
+        desc: m.text,
+        item_id: m.item_id,
+        item_title: m.item_title,
+        photo: photos[0] || null,
+        time: m.created_at,
+        read: readNotificationIds.has(`msg-${m.id}`),
+        icon: 'chat',
+        color: 'text-[#4648d4] bg-indigo-50',
+        targetTab: 'handover'
+      });
+    });
+
+    // 2. Claim updates
+    if (isAdmin) {
+      const pendingClaims = await db.all(`
+        SELECT c.*, i.title as item_title
+        FROM claims c JOIN items i ON c.item_id = i.id
+        WHERE c.status IN ('admin_review', 'submitted')
+        ORDER BY c.created_at DESC LIMIT 10
+      `);
+      pendingClaims.forEach(c => {
+        notifications.push({
+          id: `clm-admin-${c.id}`,
+          rawId: c.id,
+          type: 'claim_pending',
+          title: 'New Ownership Claim for Review',
+          desc: `${c.claimant_name} filed a verification claim for ${c.item_title} (Match: ${c.match_score}%).`,
+          item_id: c.item_id,
+          item_title: c.item_title,
+          time: c.created_at,
+          read: readNotificationIds.has(`clm-admin-${c.id}`),
+          icon: 'verified_user',
+          color: 'text-purple-600 bg-purple-50',
+          targetTab: 'admin'
+        });
+      });
+    } else {
+      // User's claims status updates
+      const myClaims = await db.all(`
+        SELECT c.*, i.title as item_title
+        FROM claims c JOIN items i ON c.item_id = i.id
+        WHERE c.claimant_id = ?
+        ORDER BY c.created_at DESC LIMIT 5
+      `, [userId]);
+      myClaims.forEach(c => {
+        if (c.status === 'approved') {
+          notifications.push({
+            id: `clm-appr-${c.id}`,
+            rawId: c.id,
+            type: 'claim_approved',
+            title: 'Claim Approved by Cabot Desk!',
+            desc: `Your claim for ${c.item_title} was approved. Ready for safe pickup.`,
+            item_id: c.item_id,
+            item_title: c.item_title,
+            time: c.reviewed_at || c.created_at,
+            read: readNotificationIds.has(`clm-appr-${c.id}`),
+            icon: 'verified',
+            color: 'text-emerald-600 bg-emerald-50',
+            targetTab: 'handover'
+          });
+        }
+      });
+    }
+
+    // 3. Sightings on items user reported
+    const mySightings = await db.all(`
+      SELECT s.*, i.title as item_title
+      FROM sightings s JOIN items i ON s.item_id = i.id
+      WHERE i.user_id = ? AND s.reporter_id != ?
+      ORDER BY s.created_at DESC LIMIT 10
+    `, [userId, userId]);
+    mySightings.forEach(s => {
+      notifications.push({
+        id: `stg-${s.id}`,
+        rawId: s.id,
+        type: 'sighting',
+        title: 'New Sighting Reported',
+        desc: `${s.reporter_name} spotted your ${s.item_title}: "${s.location_clue}"`,
+        item_id: s.item_id,
+        item_title: s.item_title,
+        time: s.created_at,
+        read: readNotificationIds.has(`stg-${s.id}`),
+        icon: 'visibility',
+        color: 'text-rose-600 bg-rose-50',
+        targetTab: 'detail'
+      });
+    });
+
+    // Sort by timestamp desc
+    notifications.sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0));
+
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    res.json({
+      notifications,
+      unreadCount,
+      totalCount: notifications.length
+    });
+  } catch (err) {
+    console.error('Error in /api/notifications:', err);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+app.post('/api/notifications/read', authMiddleware, (req, res) => {
+  const { id } = req.body;
+  if (id) {
+    readNotificationIds.add(id);
+  }
+  res.json({ success: true, id });
+});
+
+app.post('/api/notifications/read-all', authMiddleware, (req, res) => {
+  const { ids = [] } = req.body;
+  ids.forEach(id => readNotificationIds.add(id));
+  res.json({ success: true, count: ids.length });
 });
 
 // Admin Analytics & Heatmap

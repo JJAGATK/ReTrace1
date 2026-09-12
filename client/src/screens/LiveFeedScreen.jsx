@@ -183,8 +183,8 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
   };
 
   const getCategoryBadgeCount = (catId) => {
-    let countMap = stats.categoryCounts || {};
-    let totalCount = stats.active ?? (stats.total - (stats.returned || 0)) ?? items.filter(it => it.status !== 'returned').length;
+    let countMap = stats.totalCategoryCounts || stats.categoryCounts || {};
+    let totalCount = stats.total ?? items.length;
 
     if (selectedTypeFilter === 'lost') {
       countMap = stats.lostCategoryCounts || {};
@@ -197,7 +197,14 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
       totalCount = stats.returned ?? items.filter(it => it.status === 'returned').length;
     } else if (selectedTypeFilter === 'saved') {
       if (catId === 'All Items') return bookmarkedIds.size;
-      return items.filter(it => bookmarkedIds.has(it.id) && (it.category === catId || (catId === 'Apparel' && it.category === 'Jackets & Gear'))).length;
+      const standardList = ['Tech & Audio', 'Bags & Wallets', 'Campus IDs', 'Keys & Dorm', 'Bottles & Mugs', 'Books & Notes', 'Eyewear'];
+      if (catId === 'Apparel') {
+        return items.filter(it => bookmarkedIds.has(it.id) && (it.category === 'Apparel' || it.category === 'Jackets & Gear')).length;
+      }
+      if (catId === 'Other') {
+        return items.filter(it => bookmarkedIds.has(it.id) && !standardList.includes(it.category) && it.category !== 'Apparel' && it.category !== 'Jackets & Gear').length;
+      }
+      return items.filter(it => bookmarkedIds.has(it.id) && it.category === catId).length;
     }
 
     if (catId === 'All Items') {
@@ -239,7 +246,7 @@ export default function LiveFeedScreen({ onSelectItem, onOpenPostModal, onOpenCl
                   ? `${stats.returned ?? 0} reunited items`
                   : selectedTypeFilter === 'saved'
                   ? `${bookmarkedIds.size} saved listings`
-                  : `${stats.active ?? (stats.total - (stats.returned || 0)) ?? 0} active campus items`}
+                  : `${stats.total ?? items.length ?? 0} campus items`}
               </span>
             </div>
           </div>

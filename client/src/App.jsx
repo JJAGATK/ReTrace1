@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import LoadingScreen from './components/LoadingScreen';
+import MessageToastContainer from './components/MessageToast';
 import LiveFeedScreen from './screens/LiveFeedScreen';
 import PostItemScreen from './screens/PostItemScreen';
 import ItemDetailScreen from './screens/ItemDetailScreen';
@@ -53,9 +55,20 @@ function MainApp() {
     setCurrentTab('detail');
   };
 
-  const handleNavigate = (tab, params = {}) => {
+  const handleNavigate = async (tab, params = {}) => {
     if (params.building) setFocusedBuilding(params.building);
-    if (params.itemId) setActiveHandoverItemId(params.itemId);
+    if (params.itemId) {
+      setActiveHandoverItemId(params.itemId);
+      if (tab === 'detail' && (!selectedItem || selectedItem.id !== params.itemId)) {
+        try {
+          const res = await fetch(`/api/items/${params.itemId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.item) setSelectedItem(data.item);
+          }
+        } catch (e) {}
+      }
+    }
     setCurrentTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -65,7 +78,6 @@ function MainApp() {
       {isLoading && <LoadingScreen onFinish={() => setIsLoading(false)} />}
       <div className="min-h-screen bg-[#fbf8ff] text-[#1a1b25] relative selection:bg-indigo-500/20 selection:text-indigo-600 flex flex-col justify-between">
 
-      
       {/* Ambient background gradients from Stitch design */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute -top-32 left-1/4 w-[320px] md:w-[600px] h-[320px] md:h-[600px] rounded-full bg-indigo-200/35 blur-3xl opacity-70"></div>
@@ -82,6 +94,7 @@ function MainApp() {
           setSearchQuery={setSearchQuery}
           currentTab={currentTab}
           setCurrentTab={setCurrentTab}
+          onNavigate={handleNavigate}
         />
 
         {/* Sub-Navigation Desktop & Mobile */}
@@ -156,6 +169,9 @@ function MainApp() {
         </main>
       </div>
 
+      {/* Floating Bottom-Right Message Toast Popup */}
+      <MessageToastContainer onNavigate={handleNavigate} />
+
       {/* Campus Protocol Footer */}
       <footer className="mt-12 border-t border-indigo-100/80 bg-white/40 backdrop-blur-md relative z-10">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-xs">
@@ -195,7 +211,9 @@ function MainApp() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <NotificationProvider>
+        <MainApp />
+      </NotificationProvider>
     </AuthProvider>
   );
 }
