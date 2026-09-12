@@ -1,126 +1,221 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const CAMPUS_ZONES = [
+export const CAMPUS_ZONES = [
   {
     id: 'zone-cabot',
     name: 'Cabot Science Library',
     code: 'CSL-01',
+    sector: 'North Quad',
     area: 'Central Science Quad',
-    x: 34,
-    y: 28,
-    elevation: 36,
+    x: 28,
+    y: 20,
     isSafeZone: true,
-    desk: 'Cabot Circulation Desk (Staff #L-89)',
+    desk: 'Cabot Circulation Desk (Counter B)',
     hours: '8:00 AM – 11:00 PM',
-    cctvCoverage: '98.4%',
+    cctvCoverage: '99.4%',
     securityStaff: 'Officer Marcus Vance',
     securityStatus: 'Active Safe Vault',
-    buildingType: 'library-stepped',
-    description: 'Central campus STEM library equipped with safe-exchange lockboxes, dual-sign custody kiosk, and 24/7 security reception.'
+    icon: 'local_library',
+    color: '#4648d4',
+    description: 'Main STEM science library with dual-signature exchange lockbox and 24/7 front desk verification.'
   },
   {
-    id: 'zone-widener',
-    name: 'Widener Library',
-    code: 'WID-04',
-    area: 'Harvard Yard South',
-    x: 64,
-    y: 56,
-    elevation: 48,
+    id: 'zone-science-plaza',
+    name: 'Science Center Plaza',
+    code: 'SCP-02',
+    sector: 'North Quad',
+    area: 'North Campus Hub',
+    x: 50,
+    y: 16,
     isSafeZone: true,
-    desk: 'Widener Front Portico Desk',
-    hours: '9:00 AM – 10:00 PM',
-    cctvCoverage: '99.1%',
-    securityStaff: 'Guard K. Thorne',
-    securityStatus: 'High Surveillance',
-    buildingType: 'library-monument',
-    description: 'Main flagship research library. High-traffic zone with perimeter optical sensors and lost-and-found intake desk.'
-  },
-  {
-    id: 'zone-union',
-    name: 'Student Union Hub',
-    code: 'SUH-08',
-    area: 'Campus Center & Commons',
-    x: 46,
-    y: 66,
-    elevation: 32,
-    isSafeZone: true,
-    desk: 'Student Union Info Desk',
-    hours: '8:00 AM – Midnight',
-    cctvCoverage: '94.0%',
-    securityStaff: 'Campus Monitor J. Diaz',
+    desk: 'Plaza Information Kiosk',
+    hours: '7:00 AM – 10:00 PM',
+    cctvCoverage: '96.8%',
+    securityStaff: 'Guard D. Alvarez',
     securityStatus: 'Active Safe Vault',
-    buildingType: 'modern-hub',
-    description: 'Central student pavilion with dining, lockers, and continuous student traffic. Designated low-friction exchange point.'
+    icon: 'hub',
+    color: '#0891b2',
+    description: 'High-traffic open-air plaza and food court connecting Science Center, Cabot, and Memorial Hall.'
   },
   {
     id: 'zone-annenberg',
-    name: 'Annenberg Hall',
-    code: 'ANB-02',
+    name: 'Annenberg Memorial Hall',
+    code: 'ANB-03',
+    sector: 'North Quad',
     area: 'Memorial Hall North',
     x: 74,
-    y: 26,
-    elevation: 42,
+    y: 18,
     isSafeZone: false,
     desk: 'Dining Commons Reception',
-    hours: '7:30 AM – 8:00 PM',
-    cctvCoverage: '88.5%',
-    securityStaff: 'Floor Lead Sarah T.',
-    securityStatus: 'Standard Watch',
-    buildingType: 'gothic-hall',
-    description: 'Historic gothic dining hall and auditorium. Frequent reports of left-behind backpacks, electronics, and outerwear.'
+    hours: '7:30 AM – 8:30 PM',
+    cctvCoverage: '89.2%',
+    securityStaff: 'Lead Sarah T.',
+    securityStatus: 'Monitored Area',
+    icon: 'restaurant',
+    color: '#dc2626',
+    description: 'First-year dining hall and historic auditorium. Common recovery point for backpacks, coats, and tablets.'
+  },
+  {
+    id: 'zone-police',
+    name: 'Campus Police HQ',
+    code: 'HUPD-04',
+    sector: 'West Gate',
+    area: 'Main Gate 24/7 Checkpoint',
+    x: 14,
+    y: 40,
+    isSafeZone: true,
+    desk: '24/7 Central Dispatch Desk',
+    hours: '24/7 Monitored',
+    cctvCoverage: '100%',
+    securityStaff: 'Sgt. Miller (Dispatch)',
+    securityStatus: 'Maximum Security',
+    icon: 'local_police',
+    color: '#334155',
+    description: 'Central university safety headquarters with secure evidence locker, fingerprint custody logs, and fast escort dispatch.'
+  },
+  {
+    id: 'zone-memchurch',
+    name: 'Memorial Church',
+    code: 'MEM-05',
+    sector: 'Central Yard',
+    area: 'North Harvard Yard',
+    x: 44,
+    y: 40,
+    isSafeZone: true,
+    desk: 'Chapel Office Reception',
+    hours: '8:30 AM – 7:00 PM',
+    cctvCoverage: '92.5%',
+    securityStaff: 'Staff Coordinator R. Patel',
+    securityStatus: 'Active Safe Vault',
+    icon: 'church',
+    color: '#d97706',
+    description: 'Historic landmark at the center of Harvard Yard. Designated peaceful meeting point for low-friction returns.'
+  },
+  {
+    id: 'zone-sever',
+    name: 'Sever Hall & Arts Quad',
+    code: 'SEV-06',
+    sector: 'East Yard',
+    area: 'East Harvard Yard',
+    x: 74,
+    y: 42,
+    isSafeZone: false,
+    desk: 'Sever Academic Office #104',
+    hours: '8:00 AM – 9:00 PM',
+    cctvCoverage: '91.0%',
+    securityStaff: 'Proctor E. Wright',
+    securityStatus: 'Monitored Area',
+    icon: 'school',
+    color: '#7c3aed',
+    description: 'Humanities lecture hall and classroom complex. Frequent sightings of stationery, notebooks, and AirPods.'
+  },
+  {
+    id: 'zone-union',
+    name: 'Smith Campus Center',
+    code: 'SCC-07',
+    sector: 'South Hub',
+    area: 'Student Union & Commons',
+    x: 26,
+    y: 65,
+    isSafeZone: true,
+    desk: '1st Floor Welcome Desk',
+    hours: '7:00 AM – Midnight',
+    cctvCoverage: '98.5%',
+    securityStaff: 'Campus Monitor J. Diaz',
+    securityStatus: 'Active Safe Vault',
+    icon: 'apartment',
+    color: '#2563eb',
+    description: 'Multi-story student union with study pavilions, food venues, and official 24-hour lost and found storage.'
+  },
+  {
+    id: 'zone-widener',
+    name: 'Widener Flagship Library',
+    code: 'WID-08',
+    sector: 'Central Yard',
+    area: 'Harvard Yard South',
+    x: 58,
+    y: 62,
+    isSafeZone: true,
+    desk: 'Widener Front Portico Desk',
+    hours: '9:00 AM – 10:00 PM',
+    cctvCoverage: '99.5%',
+    securityStaff: 'Guard K. Thorne',
+    securityStatus: 'Active Safe Vault',
+    icon: 'menu_book',
+    color: '#4648d4',
+    description: 'Flagship research library with high security perimeter, turnstile check-in, and primary custody intake.'
   },
   {
     id: 'zone-malkin',
     name: 'Malkin Athletic Center',
-    code: 'MAC-11',
+    code: 'MAC-09',
+    sector: 'West Gate',
     area: 'Athletics & Rec Field',
-    x: 22,
-    y: 76,
-    elevation: 30,
+    x: 16,
+    y: 84,
     isSafeZone: true,
-    desk: 'Equipment Desk 2 (Court Level)',
+    desk: 'Equipment Desk (Court Level)',
     hours: '6:00 AM – 11:00 PM',
-    cctvCoverage: '96.2%',
-    securityStaff: 'Rec Supervisor B. Chen',
+    cctvCoverage: '95.5%',
+    securityStaff: 'Supervisor B. Chen',
     securityStatus: 'Active Safe Vault',
-    buildingType: 'gym-pavilion',
-    description: 'Multi-level athletic facility with locker rooms, courts, and fitness studios. Secure lockboxes for recovered valuables.'
+    icon: 'fitness_center',
+    color: '#059669',
+    description: 'Campus gymnasium and recreation center with lockers, basketball courts, and pool facility.'
   },
   {
-    id: 'zone-police',
-    name: 'Campus Police Annex',
-    code: 'HUPD-00',
-    area: 'Main Gate 24/7 Checkpoint',
-    x: 16,
-    y: 44,
-    elevation: 28,
-    isSafeZone: true,
-    desk: '24/7 Central Dispatch Desk',
-    hours: '24/7 CCTV Monitored',
-    cctvCoverage: '100%',
-    securityStaff: 'Dispatch Lead Sgt. Miller',
-    securityStatus: 'Maximum Security',
-    buildingType: 'police-annex',
-    description: 'Central campus safety headquarters with evidence-grade custody logging, biometric verification, and immediate officer escort.'
+    id: 'zone-winthrop',
+    name: 'Winthrop River House',
+    code: 'WIN-10',
+    sector: 'River Quad',
+    area: 'Charles River Residential',
+    x: 64,
+    y: 84,
+    isSafeZone: false,
+    desk: 'Winthrop House Office',
+    hours: '24/7 Resident Access',
+    cctvCoverage: '90.2%',
+    securityStaff: 'Resident Tutor M. Hayes',
+    securityStatus: 'Monitored Area',
+    icon: 'home',
+    color: '#ea580c',
+    description: 'Undergraduate residential house bordering the Charles River. Common area for lost student IDs and keys.'
   }
+];
+
+// Ordered pathway connections between adjacent campus nodes
+const PATHWAYS = [
+  ['zone-cabot', 'zone-science-plaza'],
+  ['zone-science-plaza', 'zone-annenberg'],
+  ['zone-police', 'zone-cabot'],
+  ['zone-police', 'zone-union'],
+  ['zone-police', 'zone-malkin'],
+  ['zone-science-plaza', 'zone-memchurch'],
+  ['zone-memchurch', 'zone-sever'],
+  ['zone-cabot', 'zone-union'],
+  ['zone-memchurch', 'zone-widener'],
+  ['zone-sever', 'zone-widener'],
+  ['zone-union', 'zone-widener'],
+  ['zone-union', 'zone-malkin'],
+  ['zone-widener', 'zone-winthrop'],
+  ['zone-malkin', 'zone-winthrop']
 ];
 
 export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [selectedZone, setSelectedZone] = useState(CAMPUS_ZONES[0]);
-  const [filterType, setFilterType] = useState('all'); // 'all', 'found', 'lost'
-  const [viewMode, setViewMode] = useState('isometric'); // 'isometric' or 'tactical'
-  const [radarPingActive, setRadarPingActive] = useState(true);
-  const [hoveredZone, setHoveredZone] = useState(null);
+  const [activeSector, setActiveSector] = useState('all');
+  const [filterMode, setFilterMode] = useState('all'); // 'all', 'safe', 'alerts'
 
   useEffect(() => {
     if (focusedBuilding) {
       const match = CAMPUS_ZONES.find(z => 
         z.name.toLowerCase().includes(focusedBuilding.toLowerCase()) || 
         focusedBuilding.toLowerCase().includes(z.name.toLowerCase()) ||
-        z.id.toLowerCase().includes(focusedBuilding.toLowerCase())
+        z.id.toLowerCase().includes(focusedBuilding.toLowerCase()) ||
+        z.code.toLowerCase().includes(focusedBuilding.toLowerCase())
       );
       if (match) setSelectedZone(match);
     }
@@ -141,572 +236,323 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
     loadItems();
   }, []);
 
+  // Alert count lookup map
+  const zoneAlertCount = useMemo(() => {
+    const counts = {};
+    CAMPUS_ZONES.forEach(z => {
+      const matchCount = items.filter(it => {
+        const loc = (it.coarse_location || '').toLowerCase();
+        const zName = z.name.toLowerCase();
+        const zCode = z.code.toLowerCase();
+        return loc.includes(zName) || zName.includes(loc) || loc.includes(zCode);
+      }).length;
+      counts[z.id] = matchCount;
+    });
+    return counts;
+  }, [items]);
+
+  // Filtered zones based on sector / filter mode
+  const displayedZones = useMemo(() => {
+    return CAMPUS_ZONES.filter(z => {
+      if (activeSector !== 'all' && z.sector !== activeSector) return false;
+      if (filterMode === 'safe' && !z.isSafeZone) return false;
+      if (filterMode === 'alerts' && (zoneAlertCount[z.id] || 0) === 0) return false;
+      return true;
+    });
+  }, [activeSector, filterMode, zoneAlertCount]);
+
   // Filter items in current selected building/zone
   const zoneItems = useMemo(() => {
     return items.filter(it => {
-      const matchesZone = it.coarse_location?.toLowerCase().includes(selectedZone.name.toLowerCase()) ||
-                          selectedZone.name.toLowerCase().includes(it.coarse_location?.toLowerCase());
-      if (!matchesZone) return false;
-      if (filterType === 'all') return true;
-      return it.type === filterType;
+      const loc = (it.coarse_location || '').toLowerCase();
+      const zName = selectedZone.name.toLowerCase();
+      const zCode = selectedZone.code.toLowerCase();
+      return loc.includes(zName) || zName.includes(loc) || loc.includes(zCode);
     });
-  }, [items, selectedZone, filterType]);
+  }, [items, selectedZone]);
 
-  // Alert stats per zone
-  const zoneAlertStats = useMemo(() => {
-    const stats = {};
-    CAMPUS_ZONES.forEach(z => {
-      const count = items.filter(it => 
-        it.coarse_location?.toLowerCase().includes(z.name.toLowerCase()) ||
-        z.name.toLowerCase().includes(it.coarse_location?.toLowerCase())
-      ).length;
-      stats[z.id] = count;
-    });
-    return stats;
-  }, [items]);
-
-  // Calculate checkpoint alert color
-  const getAlertColorConfig = (alertCount) => {
-    if (alertCount === 0) {
-      return {
-        theme: 'emerald',
-        badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        ringColor: '#10B981',
-        glowClass: 'shadow-[0_0_15px_rgba(16,185,129,0.5)]',
-        statusLabel: 'Idle (0 Alerts)',
-        pulseRate: 'animate-pulse'
-      };
-    }
-    if (alertCount <= 2) {
-      return {
-        theme: 'amber',
-        badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
-        ringColor: '#F59E0B',
-        glowClass: 'shadow-[0_0_18px_rgba(245,158,11,0.65)]',
-        statusLabel: `${alertCount} Active Alert${alertCount > 1 ? 's' : ''}`,
-        pulseRate: 'animate-pulse'
-      };
-    }
-    return {
-      theme: 'rose',
-      badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
-      ringColor: '#EF4444',
-      glowClass: 'shadow-[0_0_22px_rgba(239,68,68,0.75)]',
-      statusLabel: `${alertCount} Critical Alerts`,
-      pulseRate: 'animate-bounce'
-    };
-  };
+  // Helper to get coordinates for SVG pathways
+  const zoneMap = useMemo(() => {
+    const map = {};
+    CAMPUS_ZONES.forEach(z => { map[z.id] = z; });
+    return map;
+  }, []);
 
   return (
     <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
       
-      {/* HUD Header Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+      {/* Top Header & Overview Stats */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4648d4] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#4648d4]"></span>
-            </span>
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1a1b25] flex items-center gap-2">
-              Campus Operations Tactical Grid
-              <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-indigo-50 text-[#4648d4] text-[10px] font-mono font-bold uppercase tracking-wider border border-indigo-200/80">
-                GEOFENCE VERIFIED
-              </span>
+            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1b25] flex items-center gap-2">
+              Campus Operations & Safety Radar
             </h1>
           </div>
-          <p className="text-xs text-[#464554] mt-1 max-w-2xl">
-            Real-time telemetry of quad checkpoints, high-value item clusters, and custody lockers. Privacy-protected coarse view with 24/7 security escort monitoring.
+          <p className="text-xs text-[#464554] mt-0.5">
+            Live monitoring across 10 official Harvard Quad checkpoints, designated safe vaults, and item intake counters.
           </p>
         </div>
 
-        {/* Dashboard Control Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          
-          {/* Isometric vs Tactical Toggle */}
-          <div className="flex items-center p-1 rounded-full bg-white/90 glass-panel border border-indigo-200/80 shadow-xs">
+        {/* Filter Toolbar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center p-1 rounded-full glass-panel border border-indigo-100/90 shadow-xs text-xs font-semibold">
             <button
-              onClick={() => setViewMode('isometric')}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'isometric'
-                  ? 'btn-gradient-indigo text-white shadow-sm'
-                  : 'text-[#464554] hover:text-[#1a1b25]'
+              onClick={() => setFilterMode('all')}
+              className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                filterMode === 'all' ? 'btn-gradient-indigo text-white shadow-xs' : 'text-[#464554] hover:bg-indigo-50'
               }`}
             >
-              <span className="material-symbols-outlined text-sm">view_in_ar</span>
-              <span>3D Quad Terrain</span>
+              All Locations ({CAMPUS_ZONES.length})
             </button>
             <button
-              onClick={() => setViewMode('tactical')}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'tactical'
-                  ? 'btn-gradient-indigo text-white shadow-sm'
-                  : 'text-[#464554] hover:text-[#1a1b25]'
+              onClick={() => setFilterMode('safe')}
+              className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 cursor-pointer ${
+                filterMode === 'safe' ? 'bg-emerald-600 text-white shadow-xs' : 'text-[#464554] hover:bg-emerald-50'
               }`}
             >
-              <span className="material-symbols-outlined text-sm">radar</span>
-              <span>Top-Down Radar</span>
-            </button>
-          </div>
-
-          {/* Item Category Filters */}
-          <div className="flex items-center p-1 rounded-full bg-white/90 glass-panel border border-indigo-200/80 shadow-xs">
-            <button
-              onClick={() => setFilterType('all')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                filterType === 'all'
-                  ? 'bg-indigo-100/90 text-[#4648d4] font-bold shadow-xs'
-                  : 'text-[#464554] hover:bg-indigo-50'
-              }`}
-            >
-              All Nodes ({items.length})
+              <span className="material-symbols-outlined text-xs">shield</span>
+              Safe Vaults (7)
             </button>
             <button
-              onClick={() => setFilterType('found')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                filterType === 'found'
-                  ? 'bg-emerald-100 text-emerald-800 font-bold shadow-xs'
-                  : 'text-[#464554] hover:bg-emerald-50'
+              onClick={() => setFilterMode('alerts')}
+              className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 cursor-pointer ${
+                filterMode === 'alerts' ? 'bg-amber-600 text-white shadow-xs' : 'text-[#464554] hover:bg-amber-50'
               }`}
             >
-              Found ({items.filter(i => i.type === 'found').length})
-            </button>
-            <button
-              onClick={() => setFilterType('lost')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                filterType === 'lost'
-                  ? 'bg-rose-100 text-rose-800 font-bold shadow-xs'
-                  : 'text-[#464554] hover:bg-rose-50'
-              }`}
-            >
-              Lost ({items.filter(i => i.type === 'lost').length})
+              <span className="material-symbols-outlined text-xs">notifications_active</span>
+              Active Alerts
             </button>
           </div>
-
-          {/* Radar Ping Pulse Toggle */}
-          <button
-            onClick={() => setRadarPingActive(!radarPingActive)}
-            title="Toggle Live Sweep Ping"
-            className={`p-2 rounded-full border transition-all cursor-pointer ${
-              radarPingActive
-                ? 'bg-indigo-50 border-indigo-300 text-[#4648d4] shadow-xs'
-                : 'bg-white border-slate-200 text-slate-400'
-            }`}
-          >
-            <span className="material-symbols-outlined text-lg">sensors</span>
-          </button>
-
         </div>
       </div>
 
-      {/* Main Operations Grid: 8 Cols Left (Interactive Map), 4 Cols Right (Location HUD) */}
+      {/* Sector Quick-Nav Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-3 mb-4 text-xs">
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Sector:</span>
+        {['all', 'North Quad', 'Central Yard', 'East Yard', 'South Hub', 'West Gate', 'River Quad'].map((sec) => (
+          <button
+            key={sec}
+            onClick={() => setActiveSector(sec)}
+            className={`px-3 py-1 rounded-full whitespace-nowrap transition-all border text-xs font-medium cursor-pointer ${
+              activeSector === sec
+                ? 'bg-indigo-50 text-[#4648d4] font-bold border-indigo-300 shadow-xs'
+                : 'bg-white/70 text-[#464554] border-indigo-100 hover:bg-indigo-50/50'
+            }`}
+          >
+            {sec === 'all' ? 'All Sectors' : sec}
+          </button>
+        ))}
+      </div>
+
+      {/* Main Two-Panel Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* LEFT PANEL: Immersive 3D Isometric Map Stage (8 Cols) */}
-        <div className="lg:col-span-8 glass-card rounded-3xl p-3 sm:p-4 border border-indigo-200/80 shadow-2xl overflow-hidden flex flex-col gap-3 relative">
+        {/* LEFT PANEL: Ordered Campus Map Stage (8 Cols) */}
+        <div className="lg:col-span-8 glass-card rounded-3xl p-3 sm:p-4 border border-indigo-200/80 shadow-xl overflow-hidden flex flex-col gap-3 relative">
           
-          {/* Top Stage Telemetry Bar */}
-          <div className="flex items-center justify-between px-2 text-xs">
+          {/* Map Top Status Strip */}
+          <div className="flex items-center justify-between px-2 text-xs text-[#464554]">
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-md bg-[#4648d4]/10 text-[#4648d4] font-mono text-[11px] font-bold border border-indigo-200/60 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4648d4] animate-ping"></span>
-                GRID SECTOR 04 // HARVARD QUAD
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-[#4648d4] font-mono text-[11px] font-bold border border-indigo-200/70">
+                HARVARD QUADRANGLE MATRIX
               </span>
               <span className="hidden sm:inline-block text-[11px] text-slate-400 font-mono">
-                COORD: 42°22'31"N 71°06'58"W
+                GEOFENCE: ACTIVE
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">shield</span>
-                6 Checkpoints Online
-              </span>
+            <div className="flex items-center gap-2 font-mono text-[11px] text-emerald-700 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>10 SECURE CHECKPOINTS</span>
             </div>
           </div>
 
-          {/* 3D Map Container Canvas */}
-          <div className="relative w-full h-[460px] sm:h-[540px] rounded-2xl bg-gradient-to-b from-[#e8e9fb] via-[#f1f3fd] to-[#dfdff7] border border-indigo-200/70 overflow-hidden shadow-inner select-none">
+          {/* Interactive Map Board Canvas */}
+          <div className="relative w-full h-[490px] sm:h-[550px] rounded-2xl bg-gradient-to-b from-[#f3f4fd] via-[#fbf8ff] to-[#edf0fc] border border-indigo-200/70 overflow-hidden shadow-inner select-none">
             
-            {/* Background 3D Perspective Isometric Plane Grid */}
+            {/* Subtle Grid Texture */}
             <div 
-              className={`absolute inset-0 transition-transform duration-700 ${
-                viewMode === 'isometric' 
-                  ? 'scale-105 origin-center' 
-                  : 'scale-100'
-              }`}
-            >
-              
-              {/* Isometric Topographic Matrix Pattern */}
-              <div 
-                className="absolute inset-0 opacity-25"
-                style={{
-                  backgroundImage: `
-                    radial-gradient(circle at 50% 50%, #4648d4 1.2px, transparent 1.2px),
-                    linear-gradient(to right, rgba(99, 102, 241, 0.12) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(99, 102, 241, 0.12) 1px, transparent 1px)
-                  `,
-                  backgroundSize: '36px 36px, 36px 36px, 36px 36px'
-                }}
-              />
+              className="absolute inset-0 opacity-20 pointer-events-none"
+              style={{
+                backgroundImage: 'radial-gradient(#4648d4 1.2px, transparent 1.2px), linear-gradient(to right, rgba(99,102,241,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(99,102,241,0.08) 1px, transparent 1px)',
+                backgroundSize: '32px 32px, 32px 32px, 32px 32px'
+              }}
+            />
 
-              {/* Tactical Radial Range Rings from Grid Center */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                <div className="w-[320px] h-[320px] rounded-full border border-indigo-400 border-dashed"></div>
-                <div className="w-[520px] h-[520px] rounded-full border border-indigo-400/60"></div>
-                <div className="w-[720px] h-[720px] rounded-full border border-indigo-300/40"></div>
-              </div>
+            {/* Clean Ordered Campus Lawn Polygons (Background Landscape) */}
+            <div className="absolute top-[8%] left-[20%] w-[62%] h-[24%] rounded-3xl bg-emerald-500/10 border border-emerald-500/20 pointer-events-none flex items-start justify-end p-3 text-[10px] font-bold text-emerald-800 tracking-wider">
+              SCIENCE QUAD & NORTH LAWN
+            </div>
+            
+            <div className="absolute top-[34%] left-[34%] w-[50%] h-[32%] rounded-3xl bg-indigo-500/10 border border-indigo-500/20 pointer-events-none flex items-start justify-end p-3 text-[10px] font-bold text-indigo-800 tracking-wider">
+              HARVARD YARD CORE
+            </div>
 
-              {/* Atmospheric Edge Fog & Vignette */}
-              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(224,228,252,0.75)_85%,rgba(202,208,248,0.95)_100%)] z-10" />
+            <div className="absolute bottom-[4%] left-[10%] w-[78%] h-[20%] rounded-3xl bg-teal-500/10 border border-teal-500/20 pointer-events-none flex items-end justify-start p-3 text-[10px] font-bold text-teal-800 tracking-wider">
+              ATHLETICS & RIVER COMMONS
+            </div>
 
-              {/* Dynamic Spotlight Mask Focusing on Selected Building */}
-              <div 
-                className="absolute pointer-events-none transition-all duration-700 ease-out z-10"
-                style={{
-                  top: `${selectedZone.y}%`,
-                  left: `${selectedZone.x}%`,
-                  transform: 'translate(-50%, -50%)',
-                  width: '380px',
-                  height: '380px',
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(99,102,241,0.08) 40%, transparent 70%)'
-                }}
-              />
+            {/* Dynamic Spotlight Glow Centered on Selected Building */}
+            <div 
+              className="absolute pointer-events-none transition-all duration-500 ease-out z-0"
+              style={{
+                top: `${selectedZone.y}%`,
+                left: `${selectedZone.x}%`,
+                transform: 'translate(-50%, -50%)',
+                width: '280px',
+                height: '280px',
+                background: 'radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0.04) 50%, transparent 70%)'
+              }}
+            />
 
-              {/* Animated Quad Living Heatmap Polygons */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                <defs>
-                  {/* Living Lawn Heatmap Gradient */}
-                  <linearGradient id="lawnGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#10B981" stopOpacity="0.28">
-                      <animate attributeName="stopOpacity" values="0.22;0.35;0.22" dur="4s" repeatCount="indefinite" />
-                    </stop>
-                    <stop offset="50%" stopColor="#059669" stopOpacity="0.18">
-                      <animate attributeName="stopOpacity" values="0.15;0.28;0.15" dur="4s" repeatCount="indefinite" />
-                    </stop>
-                    <stop offset="100%" stopColor="#34D399" stopOpacity="0.3">
-                      <animate attributeName="stopOpacity" values="0.25;0.4;0.25" dur="4s" repeatCount="indefinite" />
-                    </stop>
-                  </linearGradient>
-
-                  {/* Harvard Yard Living Heatmap Gradient */}
-                  <linearGradient id="yardGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#4648d4" stopOpacity="0.22">
-                      <animate attributeName="stopOpacity" values="0.18;0.32;0.18" dur="5s" repeatCount="indefinite" />
-                    </stop>
-                    <stop offset="70%" stopColor="#818cf8" stopOpacity="0.16">
-                      <animate attributeName="stopOpacity" values="0.12;0.26;0.12" dur="5s" repeatCount="indefinite" />
-                    </stop>
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0.28">
-                      <animate attributeName="stopOpacity" values="0.24;0.36;0.24" dur="5s" repeatCount="indefinite" />
-                    </stop>
-                  </linearGradient>
-
-                  {/* Laser flow line pulse filter */}
-                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                  </filter>
-                </defs>
-
-                {/* Main Quad Lawn (Living Heatmap Island) */}
-                <polygon 
-                  points="280,120 450,150 420,270 240,230"
-                  fill="url(#lawnGradient)"
-                  stroke="#10B981"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 3"
-                  className="transition-all opacity-85"
-                />
-
-                {/* Harvard Yard Core (Living Heatmap Island) */}
-                <polygon 
-                  points="460,260 680,240 760,370 530,420"
-                  fill="url(#yardGradient)"
-                  stroke="#6366f1"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 3"
-                  className="transition-all opacity-85"
-                />
-
-                {/* Primary Connector Pathways (Static Layer) */}
-                <g stroke="#818cf8" strokeWidth="2.5" strokeOpacity="0.35" fill="none">
-                  <path id="path-cabot-widener" d="M 34% 28% Q 48% 38% 64% 56%" />
-                  <path id="path-cabot-annenberg" d="M 34% 28% L 74% 26%" />
-                  <path id="path-police-cabot" d="M 16% 44% L 34% 28%" />
-                  <path id="path-police-malkin" d="M 16% 44% L 22% 76%" />
-                  <path id="path-cabot-union" d="M 34% 28% L 46% 66%" />
-                  <path id="path-union-widener" d="M 46% 66% L 64% 56%" />
-                  <path id="path-union-malkin" d="M 46% 66% L 22% 76%" />
-                  <path id="path-widener-annenberg" d="M 64% 56% L 74% 26%" />
-                </g>
-
-                {/* Flowing Laser Particle Streams on Pathways */}
-                <g stroke="#4648d4" strokeWidth="3" strokeDasharray="8 16" fill="none" filter="url(#glow)">
-                  <path d="M 34% 28% Q 48% 38% 64% 56%" className="animate-[dash_6s_linear_infinite]" />
-                  <path d="M 34% 28% L 74% 26%" className="animate-[dash_5s_linear_infinite]" />
-                  <path d="M 16% 44% L 34% 28%" className="animate-[dash_4s_linear_infinite]" />
-                  <path d="M 16% 44% L 22% 76%" className="animate-[dash_4.5s_linear_infinite]" />
-                  <path d="M 34% 28% L 46% 66%" className="animate-[dash_5s_linear_infinite]" />
-                  <path d="M 46% 66% L 64% 56%" className="animate-[dash_4s_linear_infinite]" />
-                  <path d="M 46% 66% L 22% 76%" className="animate-[dash_5.5s_linear_infinite]" />
-                  <path d="M 64% 56% L 74% 26%" className="animate-[dash_4.5s_linear_infinite]" />
-                </g>
-
-                {/* Flowing Light Energy Orbs */}
-                <circle r="3.5" fill="#4648d4" filter="url(#glow)">
-                  <animateMotion path="M 34% 28% Q 48% 38% 64% 56%" dur="4s" repeatCount="indefinite" />
-                </circle>
-                <circle r="3.5" fill="#10B981" filter="url(#glow)">
-                  <animateMotion path="M 16% 44% L 34% 28%" dur="3s" repeatCount="indefinite" />
-                </circle>
-                <circle r="3.5" fill="#8455ef" filter="url(#glow)">
-                  <animateMotion path="M 46% 66% L 64% 56%" dur="3.5s" repeatCount="indefinite" />
-                </circle>
-                <circle r="3.5" fill="#4648d4" filter="url(#glow)">
-                  <animateMotion path="M 46% 66% L 22% 76%" dur="4.2s" repeatCount="indefinite" />
-                </circle>
-              </svg>
-
-              {/* Heatmap Area Labels */}
-              <div 
-                className="absolute top-[32%] left-[34%] pointer-events-none px-2.5 py-0.5 rounded-full bg-emerald-900/10 border border-emerald-600/30 text-emerald-800 text-[10px] font-bold font-mono tracking-wider -rotate-6 z-0 flex items-center gap-1"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                MAIN QUAD LAWN // HIGH ACTIVITY
-              </div>
-
-              <div 
-                className="absolute bottom-[28%] right-[22%] pointer-events-none px-2.5 py-0.5 rounded-full bg-indigo-900/10 border border-indigo-600/30 text-indigo-900 text-[10px] font-bold font-mono tracking-wider rotate-3 z-0 flex items-center gap-1"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4648d4] animate-pulse"></span>
-                HARVARD YARD CORE // CENTRAL VAULT
-              </div>
-
-              {/* Interactive 3D Low-Poly Buildings & Checkpoint Nodes */}
-              {CAMPUS_ZONES.map((zone) => {
-                const isSelected = selectedZone.id === zone.id;
-                const isHovered = hoveredZone === zone.id;
-                const alertCount = zoneAlertStats[zone.id] || 0;
-                const alertConfig = getAlertColorConfig(alertCount);
-                
-                // Depth scaling: background nodes (lower y) are slightly smaller & softer, foreground nodes sharper
-                const depthScale = 0.88 + (zone.y / 100) * 0.24; 
-                const zIndex = Math.floor(zone.y) + (isSelected ? 50 : 20);
-
+            {/* SVG Pathway Network with Flowing Light Particles */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+              {/* Clean Base Connector Lines */}
+              {PATHWAYS.map(([fromId, toId], idx) => {
+                const zFrom = zoneMap[fromId];
+                const zTo = zoneMap[toId];
+                if (!zFrom || !zTo) return null;
                 return (
-                  <div
-                    key={zone.id}
-                    style={{
-                      top: `${zone.y}%`,
-                      left: `${zone.x}%`,
-                      zIndex
-                    }}
-                    onClick={() => setSelectedZone(zone)}
-                    onMouseEnter={() => setHoveredZone(zone.id)}
-                    onMouseLeave={() => setHoveredZone(null)}
-                    className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group select-none transition-all duration-300"
-                  >
-                    
-                    {/* Radiating Ripple Shockwave Rings for Selected Node */}
-                    {isSelected && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="absolute w-16 h-16 rounded-full border-2 border-[#4648d4]/60 animate-ping"></span>
-                        <span className="absolute w-28 h-28 rounded-full border border-[#4648d4]/30 animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]"></span>
-                        <span className="absolute w-36 h-36 rounded-full bg-indigo-500/10 animate-pulse"></span>
-                      </div>
-                    )}
-
-                    {/* Low-Poly 3D Building Geometry Block */}
-                    <div 
-                      className={`relative flex flex-col items-center transition-transform duration-300 ${
-                        isSelected ? 'scale-110 -translate-y-2' : isHovered ? 'scale-105 -translate-y-1' : ''
-                      }`}
-                      style={{ transform: `scale(${depthScale})` }}
-                    >
-                      
-                      {/* Ground Ambient Contact Shadow */}
-                      <div className="w-16 h-6 rounded-[100%] bg-indigo-950/20 blur-xs -mb-2 mt-4"></div>
-
-                      {/* 3D Isometric Polygonal Building Model */}
-                      <div className="relative w-14 h-12 flex items-center justify-center">
-                        <svg viewBox="0 0 80 70" className="w-full h-full drop-shadow-md overflow-visible">
-                          
-                          {/* Isometric Building Base and Walls */}
-                          {zone.buildingType === 'library-stepped' && (
-                            <g>
-                              {/* Left Shadow Face */}
-                              <polygon points="12,35 40,52 40,65 12,48" fill="#5856d6" />
-                              {/* Right Highlight Face */}
-                              <polygon points="40,52 68,35 68,48 40,65" fill="#7a78e8" />
-                              {/* Top Roof Deck */}
-                              <polygon points="40,20 68,35 40,52 12,35" fill="#a4a3f4" />
-                              {/* Stepped Upper Tier */}
-                              <polygon points="24,28 40,38 40,44 24,34" fill="#4648d4" />
-                              <polygon points="40,38 56,28 56,34 40,44" fill="#686be5" />
-                              <polygon points="40,16 56,28 40,38 24,28" fill="#c3c2fa" />
-                              {/* Glass Skylight Stripe */}
-                              <polygon points="40,19 48,25 40,30 32,24" fill="#38bdf8" fillOpacity="0.8" />
-                            </g>
-                          )}
-
-                          {zone.buildingType === 'library-monument' && (
-                            <g>
-                              {/* Widener Monumental Steps & Portico */}
-                              <polygon points="8,40 40,60 40,68 8,48" fill="#4f46e5" />
-                              <polygon points="40,60 72,40 72,48 40,68" fill="#6366f1" />
-                              <polygon points="40,22 72,40 40,60 8,40" fill="#818cf8" />
-                              {/* Classical Pediment Roof */}
-                              <polygon points="20,28 40,12 60,28 40,36" fill="#c7d2fe" />
-                              <polygon points="40,12 60,28 60,33 40,17" fill="#6366f1" />
-                              <polygon points="20,28 40,12 40,17 20,33" fill="#4338ca" />
-                            </g>
-                          )}
-
-                          {zone.buildingType === 'modern-hub' && (
-                            <g>
-                              {/* Student Union Angular Pavilion */}
-                              <polygon points="10,34 40,54 40,64 10,44" fill="#7c3aed" />
-                              <polygon points="40,54 70,34 70,44 40,64" fill="#9333ea" />
-                              <polygon points="40,14 70,34 40,54 10,34" fill="#c084fc" />
-                              {/* Atrium Cutout */}
-                              <polygon points="40,24 54,34 40,44 26,34" fill="#3b82f6" fillOpacity="0.75" />
-                            </g>
-                          )}
-
-                          {zone.buildingType === 'gothic-hall' && (
-                            <g>
-                              {/* Annenberg Gothic Hall with Spire */}
-                              <polygon points="14,38 40,56 40,66 14,48" fill="#b91c1c" fillOpacity="0.8" />
-                              <polygon points="40,56 66,38 66,48 40,66" fill="#dc2626" fillOpacity="0.85" />
-                              <polygon points="40,20 66,38 40,56 14,38" fill="#f87171" fillOpacity="0.9" />
-                              {/* Steeple Peak */}
-                              <polygon points="40,2 45,20 35,20" fill="#991b1b" />
-                              <line x1="40" y1="2" x2="40" y2="20" stroke="#fca5a5" strokeWidth="1.5" />
-                            </g>
-                          )}
-
-                          {zone.buildingType === 'gym-pavilion' && (
-                            <g>
-                              {/* Malkin Rec Center Broad Dome */}
-                              <polygon points="10,36 40,54 40,62 10,44" fill="#0d9488" />
-                              <polygon points="40,54 70,36 70,44 40,62" fill="#14b8a6" />
-                              <polygon points="40,18 70,36 40,54 10,36" fill="#5eead4" />
-                              <ellipse cx="40" cy="34" rx="14" ry="7" fill="#0f766e" />
-                            </g>
-                          )}
-
-                          {zone.buildingType === 'police-annex' && (
-                            <g>
-                              {/* Campus Police Fortified Station */}
-                              <polygon points="14,34 40,50 40,62 14,46" fill="#1e293b" />
-                              <polygon points="40,50 66,34 66,46 40,62" fill="#334155" />
-                              <polygon points="40,18 66,34 40,50 14,34" fill="#64748b" />
-                              {/* Radar Dish & Beacon Mast */}
-                              <line x1="40" y1="4" x2="40" y2="18" stroke="#38bdf8" strokeWidth="2" />
-                              <circle cx="40" cy="4" r="2.5" fill="#f43f5e" className="animate-ping" />
-                            </g>
-                          )}
-                        </svg>
-                      </div>
-
-                      {/* Floating Hologram Checkpoint Node */}
-                      <div className="absolute -top-7 flex items-center justify-center">
-                        
-                        {/* Soft Breathing Glow Filter */}
-                        <div 
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white border-2 border-white transition-all shadow-md ${
-                            alertConfig.glowClass
-                          } ${
-                            isSelected 
-                              ? 'bg-[#4648d4] ring-4 ring-indigo-300' 
-                              : zone.isSafeZone 
-                              ? 'bg-emerald-600' 
-                              : 'bg-indigo-600'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-sm">
-                            {zone.isSafeZone ? 'shield' : 'domain'}
-                          </span>
-                        </div>
-
-                        {/* Alert Badge Counter */}
-                        {alertCount > 0 && (
-                          <span 
-                            className={`absolute -top-1 -right-1 px-1.5 min-w-[18px] h-[18px] rounded-full text-white text-[9px] font-mono font-bold flex items-center justify-center border-2 border-white shadow-xs ${
-                              alertCount >= 3 ? 'bg-rose-600' : 'bg-amber-500'
-                            }`}
-                          >
-                            {alertCount}
-                          </span>
-                        )}
-
-                        {/* Safe Vault Verified Beacon Star */}
-                        {zone.isSafeZone && (
-                          <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center border border-white text-[8px]">
-                            ✓
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Building Tactical Callout Tag */}
-                      <div className="mt-1 flex flex-col items-center">
-                        <div 
-                          className={`px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-md text-[11px] font-bold whitespace-nowrap transition-all border flex items-center gap-1.5 ${
-                            isSelected
-                              ? 'bg-[#1a1b25] text-white border-transparent ring-2 ring-indigo-400'
-                              : isHovered
-                              ? 'bg-white text-[#4648d4] border-[#4648d4] shadow-md'
-                              : 'bg-white/95 text-[#1a1b25] border-indigo-100'
-                          }`}
-                        >
-                          <span className="font-mono text-[9px] text-indigo-400 font-bold">{zone.code}</span>
-                          <span>{zone.name}</span>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
+                  <line
+                    key={`base-${idx}`}
+                    x1={`${zFrom.x}%`}
+                    y1={`${zFrom.y}%`}
+                    x2={`${zTo.x}%`}
+                    y2={`${zTo.y}%`}
+                    stroke="#818cf8"
+                    strokeWidth="2"
+                    strokeOpacity="0.3"
+                    strokeDasharray="4 4"
+                  />
                 );
               })}
 
+              {/* Animated Light Energy Streams */}
+              {PATHWAYS.map(([fromId, toId], idx) => {
+                const zFrom = zoneMap[fromId];
+                const zTo = zoneMap[toId];
+                if (!zFrom || !zTo) return null;
+                return (
+                  <line
+                    key={`pulse-${idx}`}
+                    x1={`${zFrom.x}%`}
+                    y1={`${zFrom.y}%`}
+                    x2={`${zTo.x}%`}
+                    y2={`${zTo.y}%`}
+                    stroke="#4648d4"
+                    strokeWidth="2.5"
+                    strokeDasharray="6 14"
+                    className="animate-[dash_5s_linear_infinite]"
+                  />
+                );
+              })}
+            </svg>
+
+            {/* Clean Ordered Campus Node Pins */}
+            {CAMPUS_ZONES.map((zone) => {
+              const isSelected = selectedZone.id === zone.id;
+              const isDisplayed = displayedZones.some(z => z.id === zone.id);
+              const alertCount = zoneAlertCount[zone.id] || 0;
+
+              return (
+                <div
+                  key={zone.id}
+                  style={{
+                    top: `${zone.y}%`,
+                    left: `${zone.x}%`,
+                    zIndex: isSelected ? 40 : 20
+                  }}
+                  onClick={() => setSelectedZone(zone)}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-300 ${
+                    isDisplayed ? 'opacity-100 scale-100' : 'opacity-30 scale-90'
+                  }`}
+                >
+                  {/* Radiating Ripple Shockwave Rings for Selected Node */}
+                  {isSelected && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="absolute w-12 h-12 rounded-full border-2 border-[#4648d4] animate-ping"></span>
+                      <span className="absolute w-20 h-20 rounded-full border border-indigo-400/40 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"></span>
+                    </div>
+                  )}
+
+                  {/* UNIFIED PIN CARD (Icon Tile + Badge + Label) */}
+                  <div className={`flex flex-col items-center transition-transform duration-200 ${
+                    isSelected ? 'scale-110 -translate-y-1' : 'group-hover:scale-105 group-hover:-translate-y-0.5'
+                  }`}>
+                    
+                    {/* Location Tile */}
+                    <div className="relative">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-md border-2 transition-all ${
+                        isSelected
+                          ? 'bg-[#4648d4] text-white border-white ring-4 ring-indigo-300 shadow-indigo-500/30'
+                          : zone.isSafeZone
+                          ? 'bg-white text-emerald-700 border-emerald-300 shadow-xs'
+                          : 'bg-white text-slate-700 border-indigo-200 shadow-xs'
+                      }`}>
+                        <span className="material-symbols-outlined text-xl">{zone.icon}</span>
+                      </div>
+
+                      {/* Shield / Alert Counter Badge (Directly Anchored at Corner) */}
+                      <div className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold border-2 border-white shadow-xs ${
+                        alertCount > 0
+                          ? alertCount >= 3 ? 'bg-rose-600 animate-bounce' : 'bg-amber-500'
+                          : zone.isSafeZone
+                          ? 'bg-emerald-600'
+                          : 'bg-indigo-500'
+                      }`}>
+                        {alertCount > 0 ? (
+                          alertCount
+                        ) : zone.isSafeZone ? (
+                          <span className="material-symbols-outlined text-[11px]">shield</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-[10px]">verified</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Clean Location Label Tag */}
+                    <div className={`mt-1 px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-sm text-[11px] font-bold whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-[#1a1b25] text-white border-transparent ring-2 ring-indigo-400'
+                        : 'bg-white/95 text-[#1a1b25] border-indigo-100 group-hover:border-[#4648d4] group-hover:shadow-md'
+                    }`}>
+                      <span className="text-[9px] font-mono font-bold text-indigo-400">{zone.code}</span>
+                      <span>{zone.name}</span>
+                    </div>
+
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Bottom-Left Verified Vault Info Pill */}
+            <div className="absolute bottom-3 left-3 p-2.5 rounded-2xl bg-white/95 backdrop-blur-md border border-emerald-500/40 shadow-lg max-w-xs z-30 hidden sm:flex items-start gap-2.5">
+              <div className="w-7 h-7 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                <span className="material-symbols-outlined text-base">verified_user</span>
+              </div>
+              <div>
+                <span className="text-xs font-bold text-emerald-800 block">Active Safe Vault Point</span>
+                <p className="text-[11px] text-[#464554] leading-tight mt-0.5">
+                  {selectedZone.name} is staffed for verified custody returns.
+                </p>
+              </div>
             </div>
 
-            {/* Tactical Live Compass HUD Reticle */}
-            <div className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 backdrop-blur-md border border-indigo-200/80 shadow-md flex items-center gap-2 z-20">
-              <div className="w-7 h-7 rounded-full bg-indigo-50 flex items-center justify-center text-[#4648d4] font-mono font-bold text-[10px] border border-indigo-200/60">
-                N
+            {/* Bottom-Right Clean Legend */}
+            <div className="absolute bottom-3 right-3 p-2.5 rounded-2xl bg-white/95 backdrop-blur-md border border-indigo-100 shadow-lg flex items-center gap-3 text-[10px] text-[#464554] z-30">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>Safe Vault</span>
               </div>
-              <div className="text-[10px] font-mono text-slate-500">
-                <span className="text-[#1a1b25] font-bold block leading-none">GRID OP-01</span>
-                <span>Z: 1.00x AUTO</span>
+              <div className="flex items-center gap-1.5 font-bold text-[#4648d4]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#4648d4]"></span>
+                <span>Selected</span>
               </div>
-            </div>
-
-            {/* Approved Active Safe Handover Point Banner */}
-            <div className="absolute bottom-3 left-3 p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-emerald-500/50 shadow-xl max-w-xs z-20 animate-in fade-in slide-in-from-bottom-2">
-              <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-xs mb-1">
-                <span className="material-symbols-outlined text-base text-emerald-600">verified_user</span>
-                <span>Active Vault: Cabot Circulation Desk</span>
-              </div>
-              <p className="text-[11px] text-[#464554] leading-relaxed">
-                Staffed custody locker equipped for dual-signature student handover & verified return.
-              </p>
-            </div>
-
-            {/* Tactical Radar Legend */}
-            <div className="absolute bottom-3 right-3 p-2.5 rounded-2xl bg-white/90 backdrop-blur-md border border-indigo-100 shadow-lg flex flex-col gap-1.5 text-[10px] text-[#464554] z-20">
-              <div className="flex items-center gap-2 font-bold text-[#1a1b25]">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"></span>
-                <span>CCTV Safe Checkpoint</span>
-              </div>
-              <div className="flex items-center gap-2 font-medium text-[#1a1b25]">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#4648d4] shadow-[0_0_8px_rgba(70,72,212,0.7)]"></span>
-                <span>Selected Grid Target</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-500 font-mono">
-                <span className="w-2.5 h-1 rounded-full bg-indigo-400"></span>
-                <span>Light Energy Pathway</span>
+              <div className="flex items-center gap-1.5 text-amber-700 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span>Alerts</span>
               </div>
             </div>
 
@@ -714,7 +560,7 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
 
         </div>
 
-        {/* RIGHT PANEL: Location Detail & Operations Dispatch Drawer (4 Cols) */}
+        {/* RIGHT PANEL: Location Detail & Operations Dispatch (4 Cols) */}
         <div className="lg:col-span-4 flex flex-col gap-4 w-full">
           
           {/* Active Checkpoint Telemetry Card */}
@@ -723,12 +569,12 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
             {/* Header with Code & Security Badge */}
             <div className="flex items-start justify-between border-b border-indigo-100 pb-3">
               <div>
-                <div className="flex items-center gap-1.5 text-[#4648d4]">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200/60">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-indigo-50 text-[#4648d4] px-2 py-0.5 rounded-md border border-indigo-200/60">
                     {selectedZone.code}
                   </span>
                   <span className="text-[11px] font-bold text-slate-400">
-                    {selectedZone.area}
+                    {selectedZone.sector}
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-[#1a1b25] mt-1">
@@ -765,7 +611,7 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
               </div>
 
               <div className="p-2.5 rounded-2xl bg-indigo-50/60 border border-indigo-100/80 flex flex-col gap-0.5">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Operational Status</span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Security Status</span>
                 <span className="text-xs font-bold text-[#4648d4] truncate">
                   {selectedZone.securityStatus}
                 </span>
@@ -788,7 +634,7 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
               </div>
             </div>
 
-            {/* Quick Action Buttons */}
+            {/* Quick Action Button */}
             <div className="flex items-center gap-2 pt-1">
               <button
                 type="button"
@@ -818,7 +664,7 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
             {zoneItems.length === 0 ? (
               <div className="py-8 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-1.5">
                 <span className="material-symbols-outlined text-2xl text-slate-300">check_circle</span>
-                <span>No pending lost/found alerts at this checkpoint.</span>
+                <span>No active reports in this specific checkpoint.</span>
               </div>
             ) : (
               <div className="flex flex-col gap-2.5 max-h-72 overflow-y-auto no-scrollbar pr-1">
@@ -870,4 +716,3 @@ export default function CampusMapScreen({ onSelectItem, focusedBuilding }) {
     </div>
   );
 }
-
